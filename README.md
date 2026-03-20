@@ -19,7 +19,7 @@
 
 ## 📖 About
 
-**OTLS** (Off-The-Local-Shelf) is a browser-based streaming platform that lets you organize, browse, and play your locally stored video and audio files — no server, no account, no subscription. Think of it as your personal Netflix, built entirely with vanilla HTML, CSS, and JavaScript, running right in your browser.
+**OTLS** (Off-The-Local-Storage) is a browser-based streaming platform that lets you organize, browse, and play your locally stored video and audio files — no server, no account, no subscription. Think of it as your personal Netflix, built entirely with vanilla HTML, CSS, and JavaScript, running right in your browser.
 
 > Stream your local media collection with a polished, cinema-grade interface. Everything stays on your device.
 
