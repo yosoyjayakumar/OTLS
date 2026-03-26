@@ -1,0 +1,10 @@
+# Ignore movie files folder (large binary assets)
+Movies/
+
+# Optional: poster images can also be ignored if generated or local
+Posters/
+
+# Node / macOS / temp
+node_modules/
+.DS_Store
+*.log
