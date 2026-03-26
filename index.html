@@ -374,6 +374,7 @@
         </div>
     </div>
     
+    <script src="config.js"></script>
     <script>
         function parseMovieFile(fileName, src) {
             const noExt = fileName.replace(/\.[^/.]+$/, '');
@@ -509,13 +510,62 @@
             card.className = 'movie-card';
             card.onclick = () => openPlayer(movie.title, movie.src);
 
-            card.innerHTML = `
-                <video src="${movie.src}" muted preload="metadata" playsinline></video>
-                <div class="movie-info">
-                    <h4>${movie.title} (${movie.year || 'N/A'})</h4>
-                </div>
-            `;
+            const imgEl = document.createElement('img');
+            imgEl.style.width = '100%';
+            imgEl.style.height = '170px';
+            imgEl.style.objectFit = 'cover';
+            imgEl.style.borderRadius = '4px';
+            imgEl.style.display = 'block';
+            imgEl.style.background = '#111';
+            imgEl.alt = movie.title;
+            imgEl.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="250" height="170"%3E%3Crect fill="%23222" width="250" height="170"/%3E%3C/svg%3E';
+
+            // Fetch thumbnail online
+            fetchMovieThumbnail(movie.title, movie.year).then(url => {
+                if (url) {
+                    imgEl.src = url;
+                    imgEl.style.borderRadius = '4px';
+                } else {
+                    imgEl.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="250" height="170"%3E%3Crect fill="%23333" width="250" height="170"/%3E%3Ctext x="50%25" y="50%25" font-size="14" fill="%23999" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E';
+                }
+            });
+
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'movie-info';
+            infoDiv.innerHTML = `<h4>${movie.title} (${movie.year || 'N/A'})</h4>`;
+
+            card.appendChild(imgEl);
+            card.appendChild(infoDiv);
             return card;
+        }
+
+        async function fetchMovieThumbnail(title, year) {
+            try {
+                // Try OMDb API (free tier available)
+                const searchQuery = year ? `${title} ${year}` : title;
+                const response = await fetch(`${API_CONFIG.OMDB.endpoint}?t=${encodeURIComponent(title)}&y=${year || ''}&type=movie&apikey=${API_CONFIG.OMDB.apiKey}`);
+                const data = await response.json();
+                
+                if (data.Poster && data.Poster !== 'N/A') {
+                    return data.Poster;
+                }
+                
+                // Fallback: Try TMDB API
+                const tmdbResponse = await fetch(`${API_CONFIG.TMDB.endpoint}search/movie?query=${encodeURIComponent(title)}&year=${year || ''}&api_key=${API_CONFIG.TMDB.apiKey}`);
+                const tmdbData = await tmdbResponse.json();
+                
+                if (tmdbData.results && tmdbData.results.length > 0) {
+                    const poster = tmdbData.results[0].poster_path;
+                    if (poster) {
+                        return `https://image.tmdb.org/t/p/w500${poster}`;
+                    }
+                }
+                
+                return null;
+            } catch (err) {
+                console.warn(`Could not fetch thumbnail for ${title}:`, err);
+                return null;
+            }
         }
 
         function renderMovies(filter = "") {
