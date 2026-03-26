@@ -1,4 +1,4 @@
-# 🎬 OTLS — Off-The-Local-Shelf
+# 🎬 OTLS — Off-The-Local-Storage
 
 <div align="center">
 
@@ -157,6 +157,37 @@ Toggle between dark and light mode using the 🌙 icon in the header. Your prefe
 | Mobile Safari | ⚠️ Limited file access |
 
 ---
+
+## 🎬 New Player Features
+
+1. Custom Controls
+Play/Pause Button - Toggle video playback with visual icon change
+Time Display - Shows current time / total duration (formatted MM:SS)
+Speed Selector - 0.5x, 0.75x, 1x (default), 1.25x, 1.5x, 2x playback speeds
+Volume Slider - Adjustable 0-100% volume control
+Fullscreen Button - Enter fullscreen playback
+2. Keyboard Shortcuts (when player is active)
+|Key	Action|
+SPACE	Play/Pause
+ESC	Close player
+F	Toggle fullscreen
+← Arrow	Seek back 5 seconds
+→ Arrow	Seek forward 5 seconds
+↑ Arrow	Volume up 10%
+↓ Arrow	Volume down 10%
+3. Better UI/UX
+Custom styled buttons with hover effects (primary color highlight)
+Semi-transparent dark background for controls
+On-screen keyboard hint display
+Improved title display with larger font
+All controls footer-positioned and responsive
+Auto-update play button text (▶ Play / ⏸ Pause)
+4. Smart Player Logic
+Formats time display properly (e.g., "1:23" or "2:45")
+Tracks metadata loading for accurate duration display
+Bounds-check seek times (prevents seeking beyond video length)
+Bounds-check volume (keeps between 0-1)
+Prevents accidental page scrolling on arrow key use
 
 ## 🗺️ Roadmap
 

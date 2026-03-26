@@ -79,12 +79,61 @@
             font-size: 1.5rem;
             font-weight: 600;
         }
+        .year-section {
+            margin: 20px 4%;
+            padding: 15px;
+            background: linear-gradient(135deg, rgba(245, 160, 48, 0.15), rgba(245, 160, 48, 0.05));
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .year-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+        .year-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0;
+            color: var(--primary);
+        }
+        .expand-toggle {
+            background: var(--primary);
+            color: #000;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+        .expand-toggle:hover {
+            opacity: 0.8;
+            transform: scale(1.05);
+        }
+        .expand-toggle.collapsed {
+            background: rgba(245, 160, 48, 0.5);
+        }
         .movie-row {
             display: flex;
             overflow-x: auto;
-            padding: 10px 4% 40px;
+            padding: 10px 0;
             gap: 10px;
             scrollbar-width: none; /* Firefox */
+            max-height: 220px;
+            transition: max-height 0.4s ease, opacity 0.4s ease;
+            opacity: 1;
+        }
+        .movie-row.collapsed {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            padding: 0;
         }
         .movie-row::-webkit-scrollbar { display: none; }
         .movie-card {
@@ -97,10 +146,17 @@
             transform: scale(1.05);
             z-index: 10;
         }
-        .movie-card img {
+        .movie-card img,
+        .movie-card video {
             width: 100%;
+            height: 170px;
+            object-fit: cover;
             border-radius: 4px;
             display: block;
+            background: #111;
+        }
+        .movie-card video {
+            pointer-events: none;
         }
         .movie-info {
             position: absolute;
@@ -169,6 +225,60 @@
             color: #fff;
             cursor: pointer;
             z-index: 1001;
+            transition: opacity 0.2s;
+        }
+        .close-modal:hover {
+            opacity: 0.7;
+        }
+        .player-controls {
+            position: absolute;
+            bottom: 70px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            color: #fff;
+            font-size: 0.9rem;
+            z-index: 1000;
+            flex-wrap: wrap;
+        }
+        .player-controls button {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        .player-controls button:hover {
+            background: rgba(255,255,255,0.4);
+            border-color: var(--primary);
+        }
+        .time-display {
+            min-width: 100px;
+            text-align: center;
+        }
+        .speed-control, .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .speed-control select, .volume-control input {
+            background: rgba(30,30,30,0.8);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .volume-control input {
+            width: 80px;
+        }
+        .playlist-nav {
+            margin-left: auto;
         }
         .play-icon {
             font-size: 4rem;
@@ -206,8 +316,8 @@
         <a href="#" class="logo">OTLS</a>
 
         <div style="display: flex; align-items: center; gap: 8px;">
+            <button id="scanFolderBtn" class="btn btn-secondary" type="button">Scan Movies Folder</button>
             <button id="updateListBtn" class="btn btn-secondary" type="button">Update List</button>
-            <button id="refreshBtn" class="btn btn-secondary" type="button">Refresh</button>
             <button id="saveBtn" class="btn btn-primary" type="button">Save</button>
         </div>
 
@@ -217,16 +327,37 @@
         </div>
     </header>
 
-    <div id="movies-list"></div>
+    <div id="movies-list" style="padding-top: 100px; padding-bottom: 40px;"></div>
 
     <div class="modal" id="videoModal">
         <span class="close-modal" onclick="closePlayer()">&times;</span>
         <div class="video-container">
-            <video id="videoPlayer" controls style="width:100%; height:100%;" preload="metadata">
-                Your browser does not support the HTML5 Video element.
-            </video>
-            <div id="player-text" style="text-align: center; position: absolute; bottom: 15px; left: 20px; color: white; text-shadow: 0 0 6px rgba(0,0,0,0.9);">
-                <h2 id="playing-title" style="margin: 0;">Movie Title</h2>
+            <video id="videoPlayer" style="width:100%; height:100%;" preload="metadata"></video>
+            <div class="player-controls">
+                <button id="playPauseBtn" title="Space">▶ Play</button>
+                <div class="time-display">
+                    <span id="currentTime">0:00</span> / <span id="duration">0:00</span>
+                </div>
+                <div class="speed-control">
+                    <label for="speedControl" style="font-size: 0.8rem;">Speed:</label>
+                    <select id="speedControl" title="Playback speed">
+                        <option value="0.5">0.5x</option>
+                        <option value="0.75">0.75x</option>
+                        <option value="1" selected>1x</option>
+                        <option value="1.25">1.25x</option>
+                        <option value="1.5">1.5x</option>
+                        <option value="2">2x</option>
+                    </select>
+                </div>
+                <div class="volume-control">
+                    <label for="volumeControl" style="font-size: 0.8rem;">🔊</label>
+                    <input type="range" id="volumeControl" min="0" max="100" value="100" title="Volume">
+                </div>
+                <button id="fullscreenBtn" class="playlist-nav" title="F">⛶ Fullscreen</button>
+            </div>
+            <div id="player-text" style="text-align: center; position: absolute; bottom: 90px; left: 20px; right: 20px; color: white; text-shadow: 0 0 6px rgba(0,0,0,0.9);">
+                <h2 id="playing-title" style="margin: 0; font-size: 1.3rem;">Movie Title</h2>
+                <p id="keyboard-hint" style="margin: 5px 0 0; font-size: 0.8rem; color: #aaa;">Press SPACE to play/pause, ESC to close, F for fullscreen, Arrow keys to seek</p>
             </div>
         </div>
     </div>
@@ -234,24 +365,17 @@
     <div class="modal" id="editModal">
         <div class="modal-content" style="background: #111; padding: 20px; border-radius: 8px; width: min(95%, 760px); max-height: 80vh; overflow: auto; position: relative;">
             <h2 style="margin: 0 0 10px;">Edit Movie List</h2>
-            <p style="margin: 0 0 10px; color: #aaa;">One file name per line. Format: Title - YYYY.ext</p>
+            <p style="margin: 0 0 10px; color: #727272;">One file name per line. Format: Title - YYYY.ext</p>
             <textarea id="editListTextarea" style="width:100%; height: 300px; background: #222; color: #eee; border: 1px solid #333; padding: 10px; border-radius: 4px;"></textarea>
             <div style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
                 <button id="saveManualBtn" class="btn btn-primary" type="button">Save Manual List</button>
-                <button id="loadFromJsonBtn" class="btn btn-secondary" type="button">Refresh from JSON</button>
                 <button id="closeEditModalBtn" class="btn btn-secondary" type="button">Close</button>
             </div>
         </div>
     </div>
     
     <script>
-        const fallbackMovieFiles = [
-            "Aaromaley - 2024.mkv",
-            "Dude - 2025.mkv",
-            "Telusu Kada - 2025.mkv"
-        ];
-
-        function parseMovieFile(fileName) {
+        function parseMovieFile(fileName, src) {
             const noExt = fileName.replace(/\.[^/.]+$/, '');
             const parts = noExt.split(' - ');
             let year = 0;
@@ -269,15 +393,13 @@
                 title: title || noExt,
                 year,
                 fileName,
-                img: './posters/ironman.jpg',
-                src: `./Movies/${encodeURIComponent(fileName)}`
+                src
             };
         }
 
-        function buildMovieList(fileNames) {
-            return fileNames
-                .filter(name => typeof name === 'string' && name.trim())
-                .map(parseMovieFile)
+        function buildMovieList(movies) {
+            return movies
+                .filter(m => typeof m.fileName === 'string' && m.fileName.trim())
                 .sort((a, b) => {
                     if (b.year !== a.year) return b.year - a.year;
                     return a.title.localeCompare(b.title);
@@ -292,21 +414,45 @@
                 if (!raw) return null;
                 const list = JSON.parse(raw);
                 if (!Array.isArray(list)) return null;
-                return list.filter(x => typeof x === 'string' && x.trim());
+                return list.filter(m => typeof m.fileName === 'string' && m.fileName.trim());
             } catch (e) {
                 console.warn('Could not parse local storage movie list', e);
                 return null;
             }
         }
 
-        function saveMoviesToLocalStorage(fileNames) {
-            localStorage.setItem('otls-movie-files', JSON.stringify(fileNames));
+        function saveMoviesToLocalStorage(movies) {
+            localStorage.setItem('otls-movie-files', JSON.stringify(movies));
+        }
+
+        async function scanMoviesFolder() {
+            try {
+                const dirHandle = await window.showDirectoryPicker();
+                const files = [];
+                for await (const [name, handle] of dirHandle.entries()) {
+                    if (handle.kind === 'file' && (name.endsWith('.mkv') || name.endsWith('.mp4') || name.endsWith('.avi'))) {
+                        files.push(name);
+                    }
+                }
+                if (files.length === 0) {
+                    alert('No movie files found in the selected folder.');
+                    return;
+                }
+                const movies = files.map(fileName => parseMovieFile(fileName, `./Movies/${encodeURIComponent(fileName)}`));
+                moviesData = buildMovieList(movies);
+                saveMoviesToLocalStorage(movies);
+                renderMovies();
+                alert(`Scanned ${files.length} movie files. Note: Make sure the selected folder is named 'Movies' for videos to play.`);
+            } catch (err) {
+                console.warn('Could not scan folder:', err);
+                alert('Failed to scan folder. Make sure your browser supports File System Access API.');
+            }
         }
 
         async function loadMoviesFromJson() {
-            const storageFiles = loadMoviesFromLocalStorage();
-            if (storageFiles) {
-                moviesData = buildMovieList(storageFiles);
+            const storageMovies = loadMoviesFromLocalStorage();
+            if (storageMovies) {
+                moviesData = buildMovieList(storageMovies);
                 renderMovies();
                 return;
             }
@@ -316,15 +462,18 @@
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const data = await response.json();
                 if (Array.isArray(data) && data.length > 0) {
-                    const files = data.map(x => x.fileName).filter(x => typeof x === 'string' && x.trim());
-                    moviesData = buildMovieList(files);
+                    const movies = data.map(x => {
+                        const fileName = x.fileName;
+                        return parseMovieFile(fileName, `./Movies/${encodeURIComponent(fileName)}`);
+                    }).filter(m => m.fileName.trim());
+                    moviesData = buildMovieList(movies);
                     renderMovies();
                     return;
                 }
                 throw new Error('Empty JSON data');
             } catch (err) {
-                console.warn('Could not load movies.json - falling back to in-script list:', err);
-                moviesData = buildMovieList(fallbackMovieFiles);
+                console.warn('Could not load movies.json:', err);
+                moviesData = [];
                 renderMovies();
             }
         }
@@ -348,15 +497,10 @@
                 alert('Please enter at least one movie file name.');
                 return;
             }
-            moviesData = buildMovieList(lines);
-            saveMoviesToLocalStorage(lines);
+            const movies = lines.map(fileName => parseMovieFile(fileName, `./Movies/${encodeURIComponent(fileName)}`));
+            moviesData = buildMovieList(movies);
+            saveMoviesToLocalStorage(movies);
             renderMovies();
-            closeEditModal();
-        }
-
-        function refreshFromJson() {
-            localStorage.removeItem('otls-movie-files');
-            loadMoviesFromJson();
             closeEditModal();
         }
 
@@ -366,7 +510,7 @@
             card.onclick = () => openPlayer(movie.title, movie.src);
 
             card.innerHTML = `
-                <img src="${movie.img}" alt="${movie.title}">
+                <video src="${movie.src}" muted preload="metadata" playsinline></video>
                 <div class="movie-info">
                     <h4>${movie.title} (${movie.year || 'N/A'})</h4>
                 </div>
@@ -391,16 +535,47 @@
                 const yearMovies = filtered.filter(m => (m.year || 0) === year);
                 if (yearMovies.length === 0) continue;
 
-                const title = document.createElement('h2');
-                title.className = 'section-title';
-                title.textContent = year > 0 ? year : 'Unknown Year';
+                const yearSection = document.createElement('div');
+                yearSection.className = 'year-section';
+
+                const yearHeader = document.createElement('div');
+                yearHeader.className = 'year-header';
+
+                const titleEl = document.createElement('h2');
+                titleEl.className = 'year-title';
+                titleEl.textContent = year > 0 ? year : 'Unknown Year';
+
+                const toggleBtn = document.createElement('button');
+                toggleBtn.className = 'expand-toggle';
+                toggleBtn.textContent = 'Show Less';
+                toggleBtn.setAttribute('data-year', year);
+
+                yearHeader.appendChild(titleEl);
+                yearHeader.appendChild(toggleBtn);
 
                 const row = document.createElement('div');
                 row.className = 'movie-row';
+                row.setAttribute('data-year', year);
                 yearMovies.forEach(movie => row.appendChild(createCard(movie)));
 
-                container.appendChild(title);
-                container.appendChild(row);
+                yearSection.appendChild(yearHeader);
+                yearSection.appendChild(row);
+                container.appendChild(yearSection);
+
+                // Add click handler for toggle
+                toggleBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const isCollapsed = row.classList.contains('collapsed');
+                    if (isCollapsed) {
+                        row.classList.remove('collapsed');
+                        toggleBtn.textContent = 'Show Less';
+                        toggleBtn.classList.remove('collapsed');
+                    } else {
+                        row.classList.add('collapsed');
+                        toggleBtn.textContent = 'See More';
+                        toggleBtn.classList.add('collapsed');
+                    }
+                });
             }
         }
 
@@ -417,6 +592,22 @@
             });
 
             modal.classList.add('active');
+            updatePlayerInfo();
+            
+            // Request fullscreen after a small delay to ensure modal is ready
+            setTimeout(() => {
+                if (player.requestFullscreen) {
+                    player.requestFullscreen().catch(err => {
+                        console.warn('Fullscreen request failed:', err);
+                    });
+                } else if (player.webkitRequestFullscreen) {
+                    player.webkitRequestFullscreen();
+                } else if (player.mozRequestFullScreen) {
+                    player.mozRequestFullScreen();
+                } else if (player.msRequestFullscreen) {
+                    player.msRequestFullscreen();
+                }
+            }, 100);
         }
 
         function closePlayer() {
@@ -427,24 +618,149 @@
             player.removeAttribute('src');
             player.load();
             modal.classList.remove('active');
+            
+            // Exit fullscreen if active
+            if (document.fullscreenElement) {
+                document.exitFullscreen().catch(err => {
+                    console.warn('Exit fullscreen failed:', err);
+                });
+            } else if (document.webkitFullscreenElement) {
+                document.webkitExitFullscreen();
+            } else if (document.mozFullScreenElement) {
+                document.mozCancelFullScreen();
+            } else if (document.msFullscreenElement) {
+                document.msExitFullscreen();
+            }
+        }
+
+        function formatTime(seconds) {
+            if (!seconds || isNaN(seconds)) return '0:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function updatePlayerInfo() {
+            const player = document.getElementById('videoPlayer');
+            const durationEl = document.getElementById('duration');
+            
+            player.addEventListener('loadedmetadata', () => {
+                durationEl.textContent = formatTime(player.duration);
+            }, { once: true });
+        }
+
+        function togglePlayPause() {
+            const player = document.getElementById('videoPlayer');
+            const btn = document.getElementById('playPauseBtn');
+            if (player.paused) {
+                player.play();
+                btn.textContent = '⏸ Pause';
+            } else {
+                player.pause();
+                btn.textContent = '▶ Play';
+            }
+        }
+
+        function initPlayerControls() {
+            const player = document.getElementById('videoPlayer');
+            const playPauseBtn = document.getElementById('playPauseBtn');
+            const speedControl = document.getElementById('speedControl');
+            const volumeControl = document.getElementById('volumeControl');
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+            const currentTimeEl = document.getElementById('currentTime');
+
+            // Play/Pause button
+            playPauseBtn.addEventListener('click', togglePlayPause);
+
+            // Update current time display
+            player.addEventListener('timeupdate', () => {
+                currentTimeEl.textContent = formatTime(player.currentTime);
+            });
+
+            // Speed control
+            speedControl.addEventListener('change', (e) => {
+                player.playbackRate = parseFloat(e.target.value);
+            });
+
+            // Volume control
+            volumeControl.addEventListener('input', (e) => {
+                player.volume = e.target.value / 100;
+            });
+
+            // Fullscreen
+            fullscreenBtn.addEventListener('click', () => {
+                if (player.requestFullscreen) {
+                    player.requestFullscreen();
+                } else if (player.webkitRequestFullscreen) {
+                    player.webkitRequestFullscreen();
+                }
+            });
+
+            // Update play button text on play/pause
+            player.addEventListener('play', () => {
+                playPauseBtn.textContent = '⏸ Pause';
+            });
+            player.addEventListener('pause', () => {
+                playPauseBtn.textContent = '▶ Play';
+            });
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                const modal = document.getElementById('videoModal');
+                if (modal.classList.contains('active')) {
+                    switch(e.key.toLowerCase()) {
+                        case ' ':
+                            e.preventDefault();
+                            togglePlayPause();
+                            break;
+                        case 'escape':
+                            closePlayer();
+                            break;
+                        case 'f':
+                            e.preventDefault();
+                            if (player.requestFullscreen) {
+                                player.requestFullscreen();
+                            }
+                            break;
+                        case 'arrowleft':
+                            e.preventDefault();
+                            player.currentTime = Math.max(0, player.currentTime - 5);
+                            break;
+                        case 'arrowright':
+                            e.preventDefault();
+                            player.currentTime = Math.min(player.duration, player.currentTime + 5);
+                            break;
+                        case 'arrowup':
+                            e.preventDefault();
+                            player.volume = Math.min(1, player.volume + 0.1);
+                            volumeControl.value = player.volume * 100;
+                            break;
+                        case 'arrowdown':
+                            e.preventDefault();
+                            player.volume = Math.max(0, player.volume - 0.1);
+                            volumeControl.value = player.volume * 100;
+                            break;
+                    }
+                }
+            });
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             loadMoviesFromJson();
+            initPlayerControls();
 
             document.getElementById('searchInput').addEventListener('input', (e) => {
                 renderMovies(e.target.value);
             });
 
+            document.getElementById('scanFolderBtn').addEventListener('click', scanMoviesFolder);
             document.getElementById('updateListBtn').addEventListener('click', openEditModal);
-            document.getElementById('refreshBtn').addEventListener('click', refreshFromJson);
             document.getElementById('saveBtn').addEventListener('click', () => {
-                saveMoviesToLocalStorage(moviesData.map(m => m.fileName));
+                saveMoviesToLocalStorage(moviesData);
                 alert('Current list saved to local storage.');
             });
 
             document.getElementById('saveManualBtn').addEventListener('click', saveManualList);
-            document.getElementById('loadFromJsonBtn').addEventListener('click', refreshFromJson);
             document.getElementById('closeEditModalBtn').addEventListener('click', closeEditModal);
 
             document.getElementById('editModal').addEventListener('click', (event) => {
