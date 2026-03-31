@@ -429,21 +429,59 @@
         async function scanMoviesFolder() {
             try {
                 const dirHandle = await window.showDirectoryPicker();
-                const files = [];
-                for await (const [name, handle] of dirHandle.entries()) {
-                    if (handle.kind === 'file' && (name.endsWith('.mkv') || name.endsWith('.mp4') || name.endsWith('.avi'))) {
-                        files.push(name);
+                const movies = [];
+                let totalFiles = 0;
+                
+                // Scan for main folders (primary categories)
+                for await (const [mainFolderName, mainHandle] of dirHandle.entries()) {
+                    if (mainHandle.kind === 'directory') {
+                        // Scan inside main folder for subfolders or files
+                        for await (const [itemName, itemHandle] of mainHandle.entries()) {
+                            if (itemHandle.kind === 'directory') {
+                                // This is a subfolder (secondary category)
+                                for await (const [fileName, fileHandle] of itemHandle.entries()) {
+                                    if (fileHandle.kind === 'file' && (fileName.endsWith('.mkv') || fileName.endsWith('.mp4') || fileName.endsWith('.avi'))) {
+                                        movies.push({
+                                            title: fileName.replace(/\.[^/.]+$/, ''),
+                                            fileName: fileName,
+                                            year: 0,
+                                            primaryCategory: mainFolderName,
+                                            secondaryCategory: itemName,
+                                            src: `./${encodeURIComponent(mainFolderName)}/${encodeURIComponent(itemName)}/${encodeURIComponent(fileName)}`
+                                        });
+                                        totalFiles++;
+                                    }
+                                }
+                            } else if (itemHandle.kind === 'file' && (itemName.endsWith('.mkv') || itemName.endsWith('.mp4') || itemName.endsWith('.avi'))) {
+                                // Direct file in main folder (no secondary category)
+                                movies.push({
+                                    title: itemName.replace(/\.[^/.]+$/, ''),
+                                    fileName: itemName,
+                                    year: 0,
+                                    primaryCategory: mainFolderName,
+                                    secondaryCategory: null,
+                                    src: `./${encodeURIComponent(mainFolderName)}/${encodeURIComponent(itemName)}`
+                                });
+                                totalFiles++;
+                            }
+                        }
                     }
                 }
-                if (files.length === 0) {
-                    alert('No movie files found in the selected folder.');
+                
+                if (movies.length === 0) {
+                    alert('No movie files found in the folder structure.');
                     return;
                 }
-                const movies = files.map(fileName => parseMovieFile(fileName, `./Movies/${encodeURIComponent(fileName)}`));
-                moviesData = buildMovieList(movies);
-                saveMoviesToLocalStorage(movies);
+                
+                moviesData = movies.sort((a, b) => {
+                    if (a.primaryCategory !== b.primaryCategory) return a.primaryCategory.localeCompare(b.primaryCategory);
+                    if (a.secondaryCategory && b.secondaryCategory) return a.secondaryCategory.localeCompare(b.secondaryCategory);
+                    return a.title.localeCompare(b.title);
+                });
+                
+                saveMoviesToLocalStorage(moviesData);
                 renderMovies();
-                alert(`Scanned ${files.length} movie files. Note: Make sure the selected folder is named 'Movies' for videos to play.`);
+                alert(`Scanned ${totalFiles} movie files in hierarchical structure.`);
             } catch (err) {
                 console.warn('Could not scan folder:', err);
                 alert('Failed to scan folder. Make sure your browser supports File System Access API.');
@@ -579,53 +617,183 @@
                 return;
             }
 
-            const years = [...new Set(filtered.map(m => m.year || 0))].sort((a, b) => b - a);
+            // Check if this is hierarchical data (has primaryCategory)
+            const isHierarchical = filtered.some(m => m.primaryCategory);
+            
+            if (isHierarchical) {
+                // Render hierarchical structure
+                const primaryCategories = [...new Set(filtered.map(m => m.primaryCategory))].sort();
+                
+                for (const primaryCat of primaryCategories) {
+                    const primaryMovies = filtered.filter(m => m.primaryCategory === primaryCat);
+                    if (primaryMovies.length === 0) continue;
 
-            for (const year of years) {
-                const yearMovies = filtered.filter(m => (m.year || 0) === year);
-                if (yearMovies.length === 0) continue;
+                    // Create primary category section
+                    const primarySection = document.createElement('div');
+                    primarySection.className = 'year-section';
+                    primarySection.style.marginLeft = '0';
 
-                const yearSection = document.createElement('div');
-                yearSection.className = 'year-section';
+                    const primaryHeader = document.createElement('div');
+                    primaryHeader.className = 'year-header';
 
-                const yearHeader = document.createElement('div');
-                yearHeader.className = 'year-header';
+                    const primaryTitle = document.createElement('h2');
+                    primaryTitle.className = 'year-title';
+                    primaryTitle.textContent = primaryCat;
 
-                const titleEl = document.createElement('h2');
-                titleEl.className = 'year-title';
-                titleEl.textContent = year > 0 ? year : 'Unknown Year';
+                    const primaryToggleBtn = document.createElement('button');
+                    primaryToggleBtn.className = 'expand-toggle';
+                    primaryToggleBtn.textContent = 'Show Less';
+                    primaryToggleBtn.setAttribute('data-primary', primaryCat);
 
-                const toggleBtn = document.createElement('button');
-                toggleBtn.className = 'expand-toggle';
-                toggleBtn.textContent = 'Show Less';
-                toggleBtn.setAttribute('data-year', year);
+                    primaryHeader.appendChild(primaryTitle);
+                    primaryHeader.appendChild(primaryToggleBtn);
+                    primarySection.appendChild(primaryHeader);
 
-                yearHeader.appendChild(titleEl);
-                yearHeader.appendChild(toggleBtn);
+                    // Get secondary categories for this primary category
+                    const secondaryCats = [...new Set(primaryMovies.map(m => m.secondaryCategory).filter(s => s !== null))].sort();
+                    
+                    if (secondaryCats.length === 0) {
+                        // Direct files in primary folder (no secondary)
+                        const row = document.createElement('div');
+                        row.className = 'movie-row';
+                        row.setAttribute('data-primary', primaryCat);
+                        primaryMovies.filter(m => !m.secondaryCategory).forEach(movie => row.appendChild(createCard(movie)));
+                        primarySection.appendChild(row);
 
-                const row = document.createElement('div');
-                row.className = 'movie-row';
-                row.setAttribute('data-year', year);
-                yearMovies.forEach(movie => row.appendChild(createCard(movie)));
-
-                yearSection.appendChild(yearHeader);
-                yearSection.appendChild(row);
-                container.appendChild(yearSection);
-
-                // Add click handler for toggle
-                toggleBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const isCollapsed = row.classList.contains('collapsed');
-                    if (isCollapsed) {
-                        row.classList.remove('collapsed');
-                        toggleBtn.textContent = 'Show Less';
-                        toggleBtn.classList.remove('collapsed');
+                        primaryToggleBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            const isCollapsed = row.classList.contains('collapsed');
+                            if (isCollapsed) {
+                                row.classList.remove('collapsed');
+                                primaryToggleBtn.textContent = 'Show Less';
+                                primaryToggleBtn.classList.remove('collapsed');
+                            } else {
+                                row.classList.add('collapsed');
+                                primaryToggleBtn.textContent = 'See More';
+                                primaryToggleBtn.classList.add('collapsed');
+                            }
+                        });
                     } else {
-                        row.classList.add('collapsed');
-                        toggleBtn.textContent = 'See More';
-                        toggleBtn.classList.add('collapsed');
+                        // Create secondary category sections
+                        for (const secondaryCat of secondaryCats) {
+                            const secondaryMovies = primaryMovies.filter(m => m.secondaryCategory === secondaryCat);
+                            if (secondaryMovies.length === 0) continue;
+
+                            // Create secondary category header
+                            const secondaryHeader = document.createElement('div');
+                            secondaryHeader.className = 'year-header';
+                            secondaryHeader.style.marginLeft = '20px';
+                            secondaryHeader.style.backgroundColor = 'rgba(245, 160, 48, 0.08)';
+                            secondaryHeader.style.borderRadius = '4px';
+                            secondaryHeader.style.marginTop = '10px';
+                            secondaryHeader.style.marginBottom = '5px';
+                            secondaryHeader.style.padding = '10px';
+
+                            const secondaryTitle = document.createElement('h3');
+                            secondaryTitle.className = 'year-title';
+                            secondaryTitle.style.fontSize = '1.2rem';
+                            secondaryTitle.textContent = secondaryCat;
+
+                            const secondaryToggleBtn = document.createElement('button');
+                            secondaryToggleBtn.className = 'expand-toggle';
+                            secondaryToggleBtn.textContent = 'Show Less';
+                            secondaryToggleBtn.setAttribute('data-secondary', secondaryCat);
+
+                            secondaryHeader.appendChild(secondaryTitle);
+                            secondaryHeader.appendChild(secondaryToggleBtn);
+                            primarySection.appendChild(secondaryHeader);
+
+                            // Create movie row for secondary category
+                            const row = document.createElement('div');
+                            row.className = 'movie-row';
+                            row.style.marginLeft = '40px';
+                            row.setAttribute('data-secondary', secondaryCat);
+                            secondaryMovies.forEach(movie => row.appendChild(createCard(movie)));
+                            primarySection.appendChild(row);
+
+                            // Add click handler for secondary toggle
+                            secondaryToggleBtn.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                const isCollapsed = row.classList.contains('collapsed');
+                                if (isCollapsed) {
+                                    row.classList.remove('collapsed');
+                                    secondaryToggleBtn.textContent = 'Show Less';
+                                    secondaryToggleBtn.classList.remove('collapsed');
+                                } else {
+                                    row.classList.add('collapsed');
+                                    secondaryToggleBtn.textContent = 'See More';
+                                    secondaryToggleBtn.classList.add('collapsed');
+                                }
+                            });
+                        }
                     }
-                });
+
+                    container.appendChild(primarySection);
+
+                    // Add click handler for primary toggle
+                    primaryToggleBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const allSecondaryHeaders = primarySection.querySelectorAll('.year-header[data-secondary]');
+                        const allRows = primarySection.querySelectorAll('[data-secondary]');
+                        
+                        allSecondaryHeaders.forEach(hdr => hdr.classList.toggle('collapsed'));
+                        allRows.forEach(row => row.classList.toggle('collapsed'));
+                        
+                        const isCollapsed = primarySection.querySelector('div[data-secondary]')?.classList.contains('collapsed');
+                        primaryToggleBtn.textContent = isCollapsed ? 'See More' : 'Show Less';
+                        primaryToggleBtn.classList.toggle('collapsed');
+                    });
+                }
+            } else {
+                // Fallback to original year-based rendering
+                const years = [...new Set(filtered.map(m => m.year || 0))].sort((a, b) => b - a);
+
+                for (const year of years) {
+                    const yearMovies = filtered.filter(m => (m.year || 0) === year);
+                    if (yearMovies.length === 0) continue;
+
+                    const yearSection = document.createElement('div');
+                    yearSection.className = 'year-section';
+
+                    const yearHeader = document.createElement('div');
+                    yearHeader.className = 'year-header';
+
+                    const titleEl = document.createElement('h2');
+                    titleEl.className = 'year-title';
+                    titleEl.textContent = year > 0 ? year : 'Unknown Year';
+
+                    const toggleBtn = document.createElement('button');
+                    toggleBtn.className = 'expand-toggle';
+                    toggleBtn.textContent = 'Show Less';
+                    toggleBtn.setAttribute('data-year', year);
+
+                    yearHeader.appendChild(titleEl);
+                    yearHeader.appendChild(toggleBtn);
+
+                    const row = document.createElement('div');
+                    row.className = 'movie-row';
+                    row.setAttribute('data-year', year);
+                    yearMovies.forEach(movie => row.appendChild(createCard(movie)));
+
+                    yearSection.appendChild(yearHeader);
+                    yearSection.appendChild(row);
+                    container.appendChild(yearSection);
+
+                    // Add click handler for toggle
+                    toggleBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const isCollapsed = row.classList.contains('collapsed');
+                        if (isCollapsed) {
+                            row.classList.remove('collapsed');
+                            toggleBtn.textContent = 'Show Less';
+                            toggleBtn.classList.remove('collapsed');
+                        } else {
+                            row.classList.add('collapsed');
+                            toggleBtn.textContent = 'See More';
+                            toggleBtn.classList.add('collapsed');
+                        }
+                    });
+                }
             }
         }
 

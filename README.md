@@ -104,6 +104,20 @@ otls/
 └── README.md
 ```
 
+```
+YourRootFolder/
+├── Action/              (Primary - Main Title)
+│   ├── 2020/           (Secondary - Sub Title)
+│   │   ├── Movie1.mp4
+│   │   ├── Movie2.mkv
+│   ├── 2021/           (Secondary - Sub Title)
+│   │   ├── Movie3.mp4
+├── Comedy/              (Primary - Main Title)
+│   ├── 2020/           (Secondary - Sub Title)
+│   │   ├── Movie4.mp4
+│   └── Classics/       (Secondary - Sub Title)
+│       ├── Movie5.avi
+
 ---
 
 ## 🎮 Usage
