@@ -6,7 +6,7 @@
     <title>OTLS</title>
     <style>
         :root {
-            --primary: #f5a030;
+            --primary: #30f537;
             --dark: #141414;
             --light: #f5f5f5;
         }
@@ -327,7 +327,8 @@
         </div>
     </header>
 
-    <div id="movies-list" style="padding-top: 100px; padding-bottom: 40px;"></div>
+    <div id="continue-watch-section" style="padding-top: 100px; padding-bottom: 5px; display: none;"></div>
+    <div id="movies-list" style="padding-top: 10px; padding-bottom: 40px;"></div>
 
     <div class="modal" id="videoModal">
         <span class="close-modal" onclick="closePlayer()">&times;</span>
@@ -408,6 +409,103 @@
         }
 
         let moviesData = [];
+        let continueWatchData = [];
+        let currentMovie = null;
+        let currentVideoObjectUrl = null;
+
+        function loadContinueWatchFromLocalStorage() {
+            try {
+                const raw = localStorage.getItem('otls-continue-watch');
+                if (!raw) return [];
+                const list = JSON.parse(raw);
+                if (!Array.isArray(list)) return [];
+                return list.filter(e => e && e.title && e.src);
+            } catch (e) {
+                console.warn('Could not parse continue watch data', e);
+                return [];
+            }
+        }
+
+        function saveContinueWatchToLocalStorage() {
+            localStorage.setItem('otls-continue-watch', JSON.stringify(continueWatchData));
+        }
+
+        function updateContinueWatch(movie, currentTime, duration) {
+            if (!movie || !movie.title) return;
+            const existingIndex = continueWatchData.findIndex(item => item.fileName === movie.fileName && item.src === movie.src);
+            const entry = {
+                title: movie.title,
+                fileName: movie.fileName || movie.title,
+                src: movie.src,
+                primaryCategory: movie.primaryCategory || null,
+                secondaryCategory: movie.secondaryCategory || null,
+                lastPosition: Math.floor(currentTime),
+                duration: duration || 0,
+                updatedAt: Date.now()
+            };
+
+            if (existingIndex > -1) {
+                continueWatchData[existingIndex] = entry;
+            } else {
+                continueWatchData.unshift(entry);
+                if (continueWatchData.length > 10) continueWatchData.pop();
+            }
+
+            saveContinueWatchToLocalStorage();
+            renderContinueWatch();
+        }
+
+        function removeContinueWatchEntry(movie) {
+            if (!movie) return;
+            continueWatchData = continueWatchData.filter(item => !(item.fileName === movie.fileName && item.src === movie.src));
+            saveContinueWatchToLocalStorage();
+            renderContinueWatch();
+        }
+
+        function renderContinueWatch() {
+            const container = document.getElementById('continue-watch-section');
+            if (!container) return;
+            container.innerHTML = '';
+
+            if (!continueWatchData || continueWatchData.length === 0) {
+                container.style.display = 'none';
+                return;
+            }
+
+            container.style.display = 'block';
+            const heading = document.createElement('div');
+            heading.className = 'section-title';
+            heading.textContent = 'Continue Watching';
+            container.appendChild(heading);
+
+            const row = document.createElement('div');
+            row.className = 'movie-row';
+            row.style.maxHeight = '220px';
+            row.style.marginBottom = '20px';
+
+            continueWatchData.slice(0, 10).forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'movie-card';
+                card.onclick = () => openPlayer(item);
+
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'movie-info';
+                const progressPercent = item.duration ? Math.round((item.lastPosition / item.duration) * 100) : 0;
+                infoDiv.innerHTML = `<h4>${item.title}</h4><p style="font-size: 0.8rem; margin-top: 5px;">Resume at ${formatTime(item.lastPosition)} (${progressPercent}%)</p>`;
+
+                const placeholder = document.createElement('div');
+                placeholder.style.width = '100%';
+                placeholder.style.height = '170px';
+                placeholder.style.background = '#111';
+                placeholder.style.borderRadius = '4px';
+
+                card.appendChild(placeholder);
+                card.appendChild(infoDiv);
+                row.appendChild(card);
+            });
+
+            container.appendChild(row);
+        }
 
         function loadMoviesFromLocalStorage() {
             try {
@@ -441,26 +539,32 @@
                                 // This is a subfolder (secondary category)
                                 for await (const [fileName, fileHandle] of itemHandle.entries()) {
                                     if (fileHandle.kind === 'file' && (fileName.endsWith('.mkv') || fileName.endsWith('.mp4') || fileName.endsWith('.avi'))) {
+                                        const file = await fileHandle.getFile();
+                                        const blobUrl = URL.createObjectURL(file);
                                         movies.push({
                                             title: fileName.replace(/\.[^/.]+$/, ''),
                                             fileName: fileName,
                                             year: 0,
                                             primaryCategory: mainFolderName,
                                             secondaryCategory: itemName,
-                                            src: `./${encodeURIComponent(mainFolderName)}/${encodeURIComponent(itemName)}/${encodeURIComponent(fileName)}`
+                                            src: blobUrl,
+                                            fileHandle: fileHandle
                                         });
                                         totalFiles++;
                                     }
                                 }
                             } else if (itemHandle.kind === 'file' && (itemName.endsWith('.mkv') || itemName.endsWith('.mp4') || itemName.endsWith('.avi'))) {
                                 // Direct file in main folder (no secondary category)
+                                const file = await itemHandle.getFile();
+                                const blobUrl = URL.createObjectURL(file);
                                 movies.push({
                                     title: itemName.replace(/\.[^/.]+$/, ''),
                                     fileName: itemName,
                                     year: 0,
                                     primaryCategory: mainFolderName,
                                     secondaryCategory: null,
-                                    src: `./${encodeURIComponent(mainFolderName)}/${encodeURIComponent(itemName)}`
+                                    src: blobUrl,
+                                    fileHandle: itemHandle
                                 });
                                 totalFiles++;
                             }
@@ -546,7 +650,7 @@
         function createCard(movie) {
             const card = document.createElement('div');
             card.className = 'movie-card';
-            card.onclick = () => openPlayer(movie.title, movie.src);
+            card.onclick = () => openPlayer(movie);
 
             const imgEl = document.createElement('img');
             imgEl.style.width = '100%';
@@ -607,6 +711,7 @@
         }
 
         function renderMovies(filter = "") {
+            renderContinueWatch();
             const container = document.getElementById('movies-list');
             container.innerHTML = '';
 
@@ -797,35 +902,60 @@
             }
         }
 
-        function openPlayer(title, src) {
+        async function openPlayer(movie) {
+            if (!movie || !movie.title) return;
             const modal = document.getElementById('videoModal');
             const titleEl = document.getElementById('playing-title');
             const player = document.getElementById('videoPlayer');
 
-            titleEl.textContent = "Now Playing: " + title;
-            player.src = src;
+            currentMovie = movie;
+            titleEl.textContent = "Now Playing: " + movie.title;
+
+            if (currentVideoObjectUrl) {
+                URL.revokeObjectURL(currentVideoObjectUrl);
+                currentVideoObjectUrl = null;
+            }
+
+            if (movie.fileHandle && typeof movie.fileHandle.getFile === 'function') {
+                try {
+                    const file = await movie.fileHandle.getFile();
+                    currentVideoObjectUrl = URL.createObjectURL(file);
+                    player.src = currentVideoObjectUrl;
+                } catch (err) {
+                    console.error('Failed to load file handle:', err);
+                    alert('Unable to play this file from folder access. Please try re-scanning.');
+                    return;
+                }
+            } else if (movie.src) {
+                player.src = movie.src;
+            } else {
+                console.error('No video source available for', movie.title);
+                alert('No valid video source available.');
+                return;
+            }
+
             player.load();
-            player.play().catch(() => {
-                // autoplay may be blocked; user can click play
+            player.muted = false;
+            player.addEventListener('loadedmetadata', function () {
+                if (movie.lastPosition && !isNaN(movie.lastPosition) && movie.lastPosition > 0 && movie.lastPosition < player.duration) {
+                    player.currentTime = movie.lastPosition;
+                }
+            }, { once: true });
+            player.play().catch((err) => {
+                console.warn('Autoplay blocked or failed:', err);
             });
 
             modal.classList.add('active');
+
+            if (player.requestFullscreen) {
+                player.requestFullscreen().catch(()=>{});
+            } else if (player.webkitRequestFullscreen) {
+                player.webkitRequestFullscreen();
+            } else if (player.msRequestFullscreen) {
+                player.msRequestFullscreen();
+            }
+
             updatePlayerInfo();
-            
-            // Request fullscreen after a small delay to ensure modal is ready
-            setTimeout(() => {
-                if (player.requestFullscreen) {
-                    player.requestFullscreen().catch(err => {
-                        console.warn('Fullscreen request failed:', err);
-                    });
-                } else if (player.webkitRequestFullscreen) {
-                    player.webkitRequestFullscreen();
-                } else if (player.mozRequestFullScreen) {
-                    player.mozRequestFullScreen();
-                } else if (player.msRequestFullscreen) {
-                    player.msRequestFullscreen();
-                }
-            }, 100);
         }
 
         function closePlayer() {
@@ -835,6 +965,13 @@
             player.pause();
             player.removeAttribute('src');
             player.load();
+            player.muted = false;
+
+            if (currentVideoObjectUrl) {
+                URL.revokeObjectURL(currentVideoObjectUrl);
+                currentVideoObjectUrl = null;
+            }
+
             modal.classList.remove('active');
             
             // Exit fullscreen if active
@@ -890,9 +1027,21 @@
             // Play/Pause button
             playPauseBtn.addEventListener('click', togglePlayPause);
 
-            // Update current time display
+            // Update current time display and continue-watch progress
+            let lastContinueSave = 0;
             player.addEventListener('timeupdate', () => {
                 currentTimeEl.textContent = formatTime(player.currentTime);
+
+                if (currentMovie && Date.now() - lastContinueSave > 3000) {
+                    updateContinueWatch(currentMovie, player.currentTime, player.duration);
+                    lastContinueSave = Date.now();
+                }
+            });
+
+            player.addEventListener('ended', () => {
+                if (currentMovie) {
+                    removeContinueWatchEntry(currentMovie);
+                }
             });
 
             // Speed control
@@ -920,6 +1069,11 @@
             });
             player.addEventListener('pause', () => {
                 playPauseBtn.textContent = '▶ Play';
+            });
+
+            player.addEventListener('error', () => {
+                console.error('Video playback error:', player.error);
+                alert('Video playback failed. Verify the file path and browser compatibility.');
             });
 
             // Keyboard shortcuts
@@ -964,6 +1118,8 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            continueWatchData = loadContinueWatchFromLocalStorage();
+            renderContinueWatch();
             loadMoviesFromJson();
             initPlayerControls();
 

@@ -118,7 +118,7 @@ YourRootFolder/
 │   └── Classics/       (Secondary - Sub Title)
 │       ├── Movie5.avi
 
----
+```
 
 ## 🎮 Usage
 
