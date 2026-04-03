@@ -53,6 +53,41 @@
             scrollbar-width: none;
             scroll-snap-type: x mandatory;
         }
+        #folderPickerOverlay {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 220px;
+            height: 220px;
+            background: rgba(0, 0, 0, 0.65);
+            border: 2px dashed var(--primary);
+            border-radius: 12px;
+            z-index: 90;
+            color: #fff;
+            text-align: center;
+            padding: 15px;
+            gap: 12px;
+        }
+        #folderPickerOverlay.show {
+            display: flex;
+        }
+        #folderPickerBtn {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            border: 2px solid var(--primary);
+            background: rgba(0,0,0,0.8);
+            color: var(--primary);
+            font-size: 2.5rem;
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+        }
         .hero::-webkit-scrollbar { display: none; }
         .hero-content {
             max-width: 600px;
@@ -317,6 +352,7 @@
 
         <div style="display: flex; align-items: center; gap: 8px;">
             <button id="scanFolderBtn" class="btn btn-secondary" type="button">Scan Movies Folder</button>
+            <button id="resetFolderBtn" class="btn btn-secondary" type="button">Reset Folder</button>
             <button id="updateListBtn" class="btn btn-secondary" type="button">Update List</button>
             <button id="saveBtn" class="btn btn-primary" type="button">Save</button>
         </div>
@@ -326,6 +362,12 @@
             <a class="version">Version 0.0.1</a>
         </div>
     </header>
+
+    <div id="folderPickerOverlay" class="show">
+        <button id="folderPickerBtn" title="Select movie folder">＋</button>
+        <div style="font-size: 1rem; color: #ddd;">Click plus to choose your movie folder</div>
+        <div style="font-size: 0.85rem; color: #999;">Also available from header button</div>
+    </div>
 
     <div id="continue-watch-section" style="padding-top: 100px; padding-bottom: 5px; display: none;"></div>
     <div id="movies-list" style="padding-top: 10px; padding-bottom: 40px;"></div>
@@ -488,23 +530,57 @@
                 card.className = 'movie-card';
                 card.onclick = () => openPlayer(item);
 
+                const imgEl = document.createElement('img');
+                imgEl.style.width = '100%';
+                imgEl.style.height = '170px';
+                imgEl.style.objectFit = 'cover';
+                imgEl.style.borderRadius = '4px';
+                imgEl.style.display = 'block';
+                imgEl.style.background = '#111';
+                imgEl.alt = item.title;
+                imgEl.src = item.thumbnail || getFallbackThumbnailPlaceholder(item.title);
+
+                if (!item.thumbnail) {
+                    fetchMovieThumbnail(item.title, item.year).then(url => {
+                        if (url) {
+                            imgEl.src = url;
+                            item.thumbnail = url;
+                        }
+                    });
+                }
+
                 const infoDiv = document.createElement('div');
                 infoDiv.className = 'movie-info';
                 const progressPercent = item.duration ? Math.round((item.lastPosition / item.duration) * 100) : 0;
                 infoDiv.innerHTML = `<h4>${item.title}</h4><p style="font-size: 0.8rem; margin-top: 5px;">Resume at ${formatTime(item.lastPosition)} (${progressPercent}%)</p>`;
 
-                const placeholder = document.createElement('div');
-                placeholder.style.width = '100%';
-                placeholder.style.height = '170px';
-                placeholder.style.background = '#111';
-                placeholder.style.borderRadius = '4px';
-
-                card.appendChild(placeholder);
+                card.appendChild(imgEl);
                 card.appendChild(infoDiv);
                 row.appendChild(card);
             });
 
             container.appendChild(row);
+        }
+
+        function setFolderPickerOverlayVisibility() {
+            const overlay = document.getElementById('folderPickerOverlay');
+            if (!overlay) return;
+            if (moviesData && moviesData.length > 0) {
+                overlay.classList.remove('show');
+            } else {
+                overlay.classList.add('show');
+            }
+        }
+
+        function resetFolderSelection() {
+            if (!confirm('Reset movie data and clear the selected folder?')) return;
+            moviesData = [];
+            continueWatchData = [];
+            saveMoviesToLocalStorage(moviesData);
+            saveContinueWatchToLocalStorage();
+            renderMovies();
+            setFolderPickerOverlayVisibility();
+            alert('Folder data cleared. Please scan folder again.');
         }
 
         function loadMoviesFromLocalStorage() {
@@ -660,17 +736,36 @@
             imgEl.style.display = 'block';
             imgEl.style.background = '#111';
             imgEl.alt = movie.title;
-            imgEl.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="250" height="170"%3E%3Crect fill="%23222" width="250" height="170"/%3E%3C/svg%3E';
+            imgEl.src = getFallbackThumbnailPlaceholder(movie.title);
 
-            // Fetch thumbnail online
-            fetchMovieThumbnail(movie.title, movie.year).then(url => {
+            const setImage = (url) => {
                 if (url) {
                     imgEl.src = url;
                     imgEl.style.borderRadius = '4px';
-                } else {
-                    imgEl.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="250" height="170"%3E%3Crect fill="%23333" width="250" height="170"/%3E%3Ctext x="50%25" y="50%25" font-size="14" fill="%23999" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E';
                 }
-            });
+            };
+
+            // Local movie file preview first (faster for scanned folder data)
+            if (movie.fileHandle) {
+                generateThumbnailFromVideoHandle(movie.fileHandle).then(url => {
+                    if (url) {
+                        setImage(url);
+                        movie.thumbnail = url;
+                        return;
+                    }
+
+                    // fallback to external lookup
+                    fetchMovieThumbnail(movie.title, movie.year).then(url2 => setImage(url2));
+                });
+            } else {
+                // fallback: fetch from APIs
+                fetchMovieThumbnail(movie.title, movie.year).then(url => {
+                    if (url) {
+                        setImage(url);
+                        movie.thumbnail = url;
+                    }
+                });
+            }
 
             const infoDiv = document.createElement('div');
             infoDiv.className = 'movie-info';
@@ -710,8 +805,65 @@
             }
         }
 
+        function getFallbackThumbnailPlaceholder(title) {
+            const label = encodeURIComponent(title || 'No Title');
+            return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='170'%3E%3Crect fill='%23222' width='250' height='170'/%3E%3Ctext x='50%25' y='45%25' fill='%23999' font-size='12' text-anchor='middle'%3E${label}%3C/text%3E%3C/svg%3E`;
+        }
+
+        async function generateThumbnailFromVideoHandle(fileHandle) {
+            if (!fileHandle || !fileHandle.getFile) return null;
+            try {
+                const file = await fileHandle.getFile();
+                const src = URL.createObjectURL(file);
+                const video = document.createElement('video');
+                video.preload = 'metadata';
+                video.muted = true;
+                video.playsInline = true;
+                video.src = src;
+
+                await new Promise((resolve, reject) => {
+                    let loaded = false;
+                    video.addEventListener('loadeddata', () => {
+                        loaded = true;
+                        resolve();
+                    }, { once: true });
+                    video.addEventListener('error', () => reject(new Error('Video load error')),{ once: true });
+                    setTimeout(() => {
+                        if (!loaded) resolve();
+                    }, 5000);
+                });
+
+                const seekTime = Math.min(1, (video.duration || 0) * 0.15);
+                if (!Number.isFinite(seekTime) || seekTime < 0) {
+                    URL.revokeObjectURL(src);
+                    return null;
+                }
+
+                await new Promise((resolve) => {
+                    const onSeeked = () => resolve();
+                    video.addEventListener('seeked', onSeeked, { once: true });
+                    video.currentTime = seekTime;
+                    setTimeout(resolve, 3000);
+                });
+
+                const canvas = document.createElement('canvas');
+                canvas.width = 250;
+                canvas.height = 170;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const resultUrl = canvas.toDataURL('image/jpeg', 0.8);
+
+                URL.revokeObjectURL(src);
+                return resultUrl;
+            } catch (err) {
+                console.warn('Could not generate thumbnail from video file handle:', err);
+                return null;
+            }
+        }
+
         function renderMovies(filter = "") {
             renderContinueWatch();
+            setFolderPickerOverlayVisibility();
             const container = document.getElementById('movies-list');
             container.innerHTML = '';
 
@@ -1128,6 +1280,8 @@
             });
 
             document.getElementById('scanFolderBtn').addEventListener('click', scanMoviesFolder);
+            document.getElementById('resetFolderBtn').addEventListener('click', resetFolderSelection);
+            document.getElementById('folderPickerBtn').addEventListener('click', scanMoviesFolder);
             document.getElementById('updateListBtn').addEventListener('click', openEditModal);
             document.getElementById('saveBtn').addEventListener('click', () => {
                 saveMoviesToLocalStorage(moviesData);
