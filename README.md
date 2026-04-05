@@ -3,7 +3,7 @@
 <div align="center">
 
 ![OTLS Banner](https://img.shields.io/badge/OTLS-Streaming%20Platform-ff4b4b?style=for-the-badge&logo=film&logoColor=white)
-![Version](https://img.shields.io/badge/version-1.0.0-brightgreen?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-0.0.1-brightgreen?style=for-the-badge)
 ![License](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)
 ![HTML](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
 ![CSS](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
@@ -11,7 +11,7 @@
 
 **Your personal media. Your local machine. Zero cloud needed.**
 
-[Features](#-features) · [Demo](#-demo) · [Getting Started](#-getting-started) · [Usage](#-usage) · [Tech Stack](#-tech-stack) · [Contributing](#-contributing)
+[Features](#-features) · [Demo](#-demo) · [Getting Started](#-getting-started) · [Usage](#-usage) · [Contributing](#-contributing)
 
 </div>
 
