@@ -340,7 +340,311 @@
         .search-box::placeholder {
             color: #aaa;
         }
+
+        /* Touch Optimization */
+        @media (hover: none) and (pointer: coarse) {
+            body {
+                -webkit-touch-callout: none;
+                -webkit-user-select: none;
+                user-select: none;
+            }
+            input, textarea {
+                -webkit-user-select: text;
+                user-select: text;
+            }
+            .btn {
+                min-height: 44px;
+                min-width: 44px;
+                padding: 12px 16px;
+                font-size: 1rem;
+            }
+            .expand-toggle {
+                min-height: 44px;
+                min-width: 44px;
+                padding: 10px 14px;
+                font-size: 0.9rem;
+            }
+            .movie-card {
+                -webkit-tap-highlight-color: transparent;
+            }
+            .movie-card:active {
+                opacity: 0.8;
+                transform: scale(0.98);
+            }
+            .player-controls button {
+                min-height: 44px;
+                min-width: 44px;
+            }
+            .close-modal {
+                min-width: 50px;
+                min-height: 50px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .year-header {
+                padding: 8px 0;
+            }
+            .movie-card:hover {
+                transform: none;
+            }
+            .btn:hover {
+                opacity: 1;
+            }
+            .hero-card:hover {
+                transform: none;
+                border-color: rgba(255,255,255,0.1);
+            }
+        }
+
+        /* Mobile Optimizations - Tablet (768px and below) */
+        @media (max-width: 768px) {
+            header {
+                padding: 12px 3%;
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+            .logo {
+                font-size: 1.5rem;
+                flex: 1;
+            }
+            .version {
+                display: none;
+            }
+            #mobileMenuBtn {
+                display: block !important;
+                color: var(--primary);
+                font-size: 1.3rem;
+                background: none;
+                border: none;
+                cursor: pointer;
+                padding: 8px;
+                min-width: 44px;
+                min-height: 44px;
+            }
+            header > div:first-of-type {
+                order: 4;
+                width: 100%;
+                display: none !important;
+                flex-direction: column;
+                gap: 8px;
+            }
+            header > div:first-of-type.mobile-menu-open {
+                display: flex !important;
+            }
+            header > div:first-of-type.mobile-menu-open button {
+                width: 100%;
+            }
+            .search-box {
+                order: 3;
+                width: 100%;
+                margin: 0;
+                padding: 8px 15px;
+                font-size: 1rem;
+            }
+            .search-box:focus {
+                width: 100%;
+            }
+            .hero-title { font-size: 2rem; }
+            .hero-desc { font-size: 1rem; }
+            .hero-content {
+                max-width: 100%;
+            }
+            .year-section {
+                margin: 15px 3%;
+                padding: 12px;
+            }
+            .year-title {
+                font-size: 1.2rem;
+            }
+            .movie-card {
+                flex: 0 0 180px;
+                min-width: 140px;
+            }
+            .movie-card img,
+            .movie-card video {
+                height: 130px;
+            }
+            .movie-info {
+                padding: 8px;
+            }
+            .movie-info h4 {
+                font-size: 0.85rem;
+            }
+            .expand-toggle {
+                padding: 8px 16px;
+                font-size: 0.85rem;
+                min-width: 70px;
+            }
+            .movie-row {
+                max-height: 160px;
+                gap: 8px;
+                padding: 8px 0;
+            }
+            .close-modal {
+                top: 10px;
+                right: 15px;
+                font-size: 2rem;
+            }
+            .video-container {
+                width: 95%;
+                max-width: 100%;
+                aspect-ratio: 16/9;
+            }
+            .player-controls {
+                bottom: 60px;
+                left: 10px;
+                right: 10px;
+                gap: 8px;
+                font-size: 0.8rem;
+            }
+            .player-controls button {
+                padding: 8px 12px;
+                font-size: 0.8rem;
+            }
+            .time-display {
+                min-width: 80px;
+                font-size: 0.8rem;
+            }
+            .speed-control, .volume-control {
+                gap: 6px;
+            }
+            .speed-control select, .volume-control input {
+                padding: 6px 8px;
+                font-size: 0.8rem;
+            }
+            .volume-control input {
+                width: 60px;
+            }
+            #player-text {
+                bottom: 75px !important;
+            }
+            #playing-title {
+                font-size: 1rem !important;
+            }
+            #keyboard-hint {
+                font-size: 0.7rem !important;
+            }
+        }
+
+        /* Mobile Optimizations - Smartphone (480px and below) */
+        @media (max-width: 480px) {
+            header {
+                padding: 10px 2%;
+            }
+            .logo {
+                font-size: 1.3rem;
+                flex: 1;
+            }
+            .search-box {
+                font-size: 0.9rem;
+                padding: 8px 12px;
+            }
+            .hero {
+                height: 60vh;
+                padding: 0 2%;
+            }
+            .hero-title { 
+                font-size: 1.5rem;
+                margin-bottom: 8px;
+            }
+            .hero-desc { 
+                font-size: 0.9rem;
+                margin-bottom: 15px;
+            }
+            .hero-card {
+                flex: 0 0 250px;
+                max-width: 280px;
+            }
+            .section-title {
+                padding: 15px 2% 8px;
+                font-size: 1.2rem;
+            }
+            .year-section {
+                margin: 12px 2%;
+                padding: 10px;
+                border-width: 1px;
+            }
+            .year-title {
+                font-size: 1rem;
+            }
+            .year-header {
+                flex-direction: column;
+                gap: 8px;
+                align-items: flex-start;
+            }
+            .expand-toggle {
+                width: 100%;
+                padding: 10px 12px;
+            }
+            .movie-card {
+                flex: 0 0 150px;
+            }
+            .movie-card img,
+            .movie-card video {
+                height: 110px;
+            }
+            .movie-row {
+                max-height: 140px;
+                gap: 6px;
+                padding: 6px 0;
+            }
+            .video-container {
+                width: 98%;
+            }
+            .player-controls {
+                bottom: 50px;
+                left: 5px;
+                right: 5px;
+                gap: 4px;
+                font-size: 0.75rem;
+            }
+            .player-controls button {
+                padding: 8px 10px;
+                font-size: 0.75rem;
+            }
+            .time-display {
+                min-width: 70px;
+                font-size: 0.75rem;
+            }
+            .speed-control select, .volume-control input {
+                font-size: 0.75rem;
+                padding: 4px 6px;
+            }
+            .volume-control input {
+                width: 50px;
+            }
+            .btn {
+                padding: 8px 12px;
+                font-size: 0.85rem;
+            }
+            #player-text {
+                bottom: 60px !important;
+            }
+            #playing-title {
+                font-size: 0.95rem !important;
+                margin: 0;
+            }
+            #keyboard-hint {
+                display: none;
+            }
+            #folderPickerOverlay {
+                height: 100vh;
+            }
+            #folderPickerBtn {
+                font-size: 3rem;
+                padding: 20px;
+            }
+        }
+
         @media (min-width: 1024px) {
+            #mobileMenuBtn {
+                display: none !important;
+            }
+            header > div:first-of-type {
+                display: flex !important;
+                order: 2;
+            }
             .hero { justify-content: center; }
         }
     </style>
@@ -349,6 +653,8 @@
 
     <header>
         <a href="#" class="logo">OTLS</a>
+
+        <button id="mobileMenuBtn" style="display: none; margin-left: auto;">☰</button>
 
         <div style="display: flex; align-items: center; gap: 8px;">
             <button id="scanFolderBtn" class="btn btn-secondary" type="button">Scan Movies Folder</button>
@@ -1294,6 +1600,70 @@
             document.getElementById('editModal').addEventListener('click', (event) => {
                 if (event.target.id === 'editModal') closeEditModal();
             });
+
+            // Mobile Menu Toggle
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const headerButtonsDiv = document.querySelector('header > div:first-of-type');
+            
+            if (mobileMenuBtn && headerButtonsDiv) {
+                mobileMenuBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    headerButtonsDiv.classList.toggle('mobile-menu-open');
+                    mobileMenuBtn.textContent = headerButtonsDiv.classList.contains('mobile-menu-open') ? '✕' : '☰';
+                });
+
+                document.addEventListener('click', () => {
+                    if (headerButtonsDiv.classList.contains('mobile-menu-open')) {
+                        headerButtonsDiv.classList.remove('mobile-menu-open');
+                        mobileMenuBtn.textContent = '☰';
+                    }
+                });
+
+                const buttons = headerButtonsDiv.querySelectorAll('button');
+                buttons.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        headerButtonsDiv.classList.remove('mobile-menu-open');
+                        mobileMenuBtn.textContent = '☰';
+                    });
+                });
+            }
+
+            // Touch & Swipe Gesture Support
+            let touchStartX = 0;
+            let touchStartY = 0;
+            let isTouching = false;
+
+            document.getElementById('videoModal').addEventListener('touchstart', (e) => {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+                isTouching = true;
+            }, { passive: true });
+
+            document.getElementById('videoModal').addEventListener('touchend', (e) => {
+                if (!isTouching) return;
+                const touchEndX = e.changedTouches[0].clientX;
+                const touchEndY = e.changedTouches[0].clientY;
+                const deltaX = touchEndX - touchStartX;
+                const deltaY = touchEndY - touchStartY;
+
+                if (deltaY > 100 && Math.abs(deltaX) < 50) {
+                    closePlayer();
+                } else if (deltaX > 50 && Math.abs(deltaY) < 50) {
+                    const player = document.getElementById('videoPlayer');
+                    if (player) player.currentTime = Math.max(0, player.currentTime - 10);
+                } else if (deltaX < -50 && Math.abs(deltaY) < 50) {
+                    const player = document.getElementById('videoPlayer');
+                    if (player) player.currentTime = Math.min(player.duration, player.currentTime + 10);
+                }
+                isTouching = false;
+            }, { passive: true });
+
+            // Passive event listeners for better scroll performance
+            if ('ontouchstart' in window) {
+                document.addEventListener('touchstart', () => {}, { passive: true });
+                document.addEventListener('touchmove', () => {}, { passive: true });
+                document.addEventListener('touchend', () => {}, { passive: true });
+            }
         });
     </script>
 </body>
