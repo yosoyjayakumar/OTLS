@@ -4,679 +4,73 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OTLS</title>
-    <style>
-        :root {
-            --primary: #30f537;
-            --dark: #141414;
-            --light: #f5f5f5;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            background-color: var(--dark);
-            color: var(--light);
-            overflow-x: hidden;
-        }
-        header {
-            position: fixed;
-            top: 0;
-            width: 100%;
-            padding: 20px 4%;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.7) 10%, rgba(0,0,0,0));
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .logo {
-            color: var(--primary);
-            font-size: 2rem;
-            font-weight: bold;
-            text-decoration: none;
-        }
-        .version {
-            padding: 5px 2% 5px;
-            font-size: 1rem;
-            font-weight: 600;
-        }
-        .hero {
-            height: 80vh;
-            background: linear-gradient(rgba(0,0,0,0.3), var(--dark)), url('');
-            background-size: cover;
-            background-position: center;
-            display: flex;
-            align-items: center;
-            padding: 0 4%;
-            justify-content: flex-start;
-            gap: 20px;
-            overflow-x: auto;
-            scrollbar-width: none;
-            scroll-snap-type: x mandatory;
-        }
-        #folderPickerOverlay {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 220px;
-            height: 220px;
-            background: rgba(0, 0, 0, 0.65);
-            border: 2px dashed var(--primary);
-            border-radius: 12px;
-            z-index: 90;
-            color: #fff;
-            text-align: center;
-            padding: 15px;
-            gap: 12px;
-        }
-        #folderPickerOverlay.show {
-            display: flex;
-        }
-        #folderPickerBtn {
-            width: 72px;
-            height: 72px;
-            border-radius: 50%;
-            border: 2px solid var(--primary);
-            background: rgba(0,0,0,0.8);
-            color: var(--primary);
-            font-size: 2.5rem;
-            cursor: pointer;
-            display: grid;
-            place-items: center;
-        }
-        .hero::-webkit-scrollbar { display: none; }
-        .hero-content {
-            max-width: 600px;
-        }
-        .hero-title { font-size: 4rem; margin-bottom: 10px; }
-        .hero-desc { font-size: 1.2rem; margin-bottom: 20px; line-height: 1.5; }
-        .btn {
-            padding: 10px 25px;
-            border: none;
-            border-radius: 4px;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: opacity 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .btn-primary { background-color: var(--primary); color: white; }
-        .btn-secondary { background-color: rgba(109, 109, 110, 0.7); color: white; margin-left: 10px; }
-        .btn:hover { opacity: 0.8; }
-        
-        .section-title {
-            padding: 20px 4% 10px;
-            font-size: 1.5rem;
-            font-weight: 600;
-        }
-        .year-section {
-            margin: 20px 4%;
-            padding: 15px;
-            background: linear-gradient(135deg, rgba(245, 160, 48, 0.15), rgba(245, 160, 48, 0.05));
-            border: 2px solid var(--primary);
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .year-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-        }
-        .year-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin: 0;
-            color: var(--primary);
-        }
-        .expand-toggle {
-            background: var(--primary);
-            color: #000;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: all 0.3s;
-        }
-        .expand-toggle:hover {
-            opacity: 0.8;
-            transform: scale(1.05);
-        }
-        .expand-toggle.collapsed {
-            background: rgba(245, 160, 48, 0.5);
-        }
-        .movie-row {
-            display: flex;
-            overflow-x: auto;
-            padding: 10px 0;
-            gap: 10px;
-            scrollbar-width: none; /* Firefox */
-            max-height: 220px;
-            transition: max-height 0.4s ease, opacity 0.4s ease;
-            opacity: 1;
-        }
-        .movie-row.collapsed {
-            max-height: 0;
-            opacity: 0;
-            overflow: hidden;
-            padding: 0;
-        }
-        .movie-row::-webkit-scrollbar { display: none; }
-        .movie-card {
-            flex: 0 0 250px;
-            transition: transform 0.3s;
-            cursor: pointer;
-            position: relative;
-        }
-        .movie-card:hover {
-            transform: scale(1.05);
-            z-index: 10;
-        }
-        .movie-card img,
-        .movie-card video {
-            width: 100%;
-            height: 170px;
-            object-fit: cover;
-            border-radius: 4px;
-            display: block;
-            background: #111;
-        }
-        .movie-card video {
-            pointer-events: none;
-        }
-        .movie-info {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 10px;
-            background: linear-gradient(transparent, rgba(0,0,0,0.9));
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        .movie-card:hover .movie-info { opacity: 1; }
-
-        .hero-card {
-            flex: 1 0 300px;
-            height: 100%;
-            background-size: cover;
-            background-position: center;
-            border-radius: 8px;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: transform 0.3s;
-            max-width: 400px;
-            border: 2px solid rgba(255,255,255,0.1);
-            overflow: hidden;
-            scroll-snap-align: center;
-        }
-        .hero-card:hover { transform: scale(1.05); z-index: 5; border-color: var(--primary); }
-        .hero-card-content {
-            position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px;
-            background: linear-gradient(transparent, rgba(0,0,0,0.9));
-        }
-        .hero-card h3 { margin-bottom: 10px; font-size: 1.5rem; }
-
-        /* Modal */
-        .modal {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95);
-            z-index: 1000;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-        .modal.active { display: flex; }
-        .video-container {
-            width: 80%;
-            max-width: 900px;
-            aspect-ratio: 16/9;
-            background: #000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-        }
-        .close-modal {
-            position: absolute;
-            top: 20px;
-            right: 30px;
-            font-size: 3rem;
-            color: #fff;
-            cursor: pointer;
-            z-index: 1001;
-            transition: opacity 0.2s;
-        }
-        .close-modal:hover {
-            opacity: 0.7;
-        }
-        .player-controls {
-            position: absolute;
-            bottom: 70px;
-            left: 20px;
-            right: 20px;
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            color: #fff;
-            font-size: 0.9rem;
-            z-index: 1000;
-            flex-wrap: wrap;
-        }
-        .player-controls button {
-            background: rgba(255,255,255,0.2);
-            border: 1px solid rgba(255,255,255,0.3);
-            color: #fff;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.2s;
-        }
-        .player-controls button:hover {
-            background: rgba(255,255,255,0.4);
-            border-color: var(--primary);
-        }
-        .time-display {
-            min-width: 100px;
-            text-align: center;
-        }
-        .speed-control, .volume-control {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .speed-control select, .volume-control input {
-            background: rgba(30,30,30,0.8);
-            border: 1px solid rgba(255,255,255,0.2);
-            color: #fff;
-            padding: 4px 8px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .volume-control input {
-            width: 80px;
-        }
-        .playlist-nav {
-            margin-left: auto;
-        }
-        .play-icon {
-            font-size: 4rem;
-            color: rgba(255,255,255,0.5);
-        }
-        .search-box {
-            background: rgba(20, 20, 20, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 10px 20px;
-            border-radius: 50px;
-            color: #fff;
-            margin: 0 20px;
-            width: 300px;
-            transition: all 0.3s ease;
-            font-size: 0.95rem;
-            outline: none;
-        }
-        .search-box:focus {
-            background: rgba(0, 0, 0, 0.9);
-            border-color: var(--primary);
-            box-shadow: 0 0 15px rgba(86, 243, 91, 0.2);
-            width: 320px;
-        }
-        .search-box::placeholder {
-            color: #aaa;
-        }
-
-        /* Touch Optimization */
-        @media (hover: none) and (pointer: coarse) {
-            body {
-                -webkit-touch-callout: none;
-                -webkit-user-select: none;
-                user-select: none;
-            }
-            input, textarea {
-                -webkit-user-select: text;
-                user-select: text;
-            }
-            .btn {
-                min-height: 44px;
-                min-width: 44px;
-                padding: 12px 16px;
-                font-size: 1rem;
-            }
-            .expand-toggle {
-                min-height: 44px;
-                min-width: 44px;
-                padding: 10px 14px;
-                font-size: 0.9rem;
-            }
-            .movie-card {
-                -webkit-tap-highlight-color: transparent;
-            }
-            .movie-card:active {
-                opacity: 0.8;
-                transform: scale(0.98);
-            }
-            .player-controls button {
-                min-height: 44px;
-                min-width: 44px;
-            }
-            .close-modal {
-                min-width: 50px;
-                min-height: 50px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            .year-header {
-                padding: 8px 0;
-            }
-            .movie-card:hover {
-                transform: none;
-            }
-            .btn:hover {
-                opacity: 1;
-            }
-            .hero-card:hover {
-                transform: none;
-                border-color: rgba(255,255,255,0.1);
-            }
-        }
-
-        /* Mobile Optimizations - Tablet (768px and below) */
-        @media (max-width: 768px) {
-            header {
-                padding: 12px 3%;
-                flex-wrap: wrap;
-                gap: 12px;
-            }
-            .logo {
-                font-size: 1.5rem;
-                flex: 1;
-            }
-            .version {
-                display: none;
-            }
-            #mobileMenuBtn {
-                display: block !important;
-                color: var(--primary);
-                font-size: 1.3rem;
-                background: none;
-                border: none;
-                cursor: pointer;
-                padding: 8px;
-                min-width: 44px;
-                min-height: 44px;
-            }
-            header > div:first-of-type {
-                order: 4;
-                width: 100%;
-                display: none !important;
-                flex-direction: column;
-                gap: 8px;
-            }
-            header > div:first-of-type.mobile-menu-open {
-                display: flex !important;
-            }
-            header > div:first-of-type.mobile-menu-open button {
-                width: 100%;
-            }
-            .search-box {
-                order: 3;
-                width: 100%;
-                margin: 0;
-                padding: 8px 15px;
-                font-size: 1rem;
-            }
-            .search-box:focus {
-                width: 100%;
-            }
-            .hero-title { font-size: 2rem; }
-            .hero-desc { font-size: 1rem; }
-            .hero-content {
-                max-width: 100%;
-            }
-            .year-section {
-                margin: 15px 3%;
-                padding: 12px;
-            }
-            .year-title {
-                font-size: 1.2rem;
-            }
-            .movie-card {
-                flex: 0 0 180px;
-                min-width: 140px;
-            }
-            .movie-card img,
-            .movie-card video {
-                height: 130px;
-            }
-            .movie-info {
-                padding: 8px;
-            }
-            .movie-info h4 {
-                font-size: 0.85rem;
-            }
-            .expand-toggle {
-                padding: 8px 16px;
-                font-size: 0.85rem;
-                min-width: 70px;
-            }
-            .movie-row {
-                max-height: 160px;
-                gap: 8px;
-                padding: 8px 0;
-            }
-            .close-modal {
-                top: 10px;
-                right: 15px;
-                font-size: 2rem;
-            }
-            .video-container {
-                width: 95%;
-                max-width: 100%;
-                aspect-ratio: 16/9;
-            }
-            .player-controls {
-                bottom: 60px;
-                left: 10px;
-                right: 10px;
-                gap: 8px;
-                font-size: 0.8rem;
-            }
-            .player-controls button {
-                padding: 8px 12px;
-                font-size: 0.8rem;
-            }
-            .time-display {
-                min-width: 80px;
-                font-size: 0.8rem;
-            }
-            .speed-control, .volume-control {
-                gap: 6px;
-            }
-            .speed-control select, .volume-control input {
-                padding: 6px 8px;
-                font-size: 0.8rem;
-            }
-            .volume-control input {
-                width: 60px;
-            }
-            #player-text {
-                bottom: 75px !important;
-            }
-            #playing-title {
-                font-size: 1rem !important;
-            }
-            #keyboard-hint {
-                font-size: 0.7rem !important;
-            }
-        }
-
-        /* Mobile Optimizations - Smartphone (480px and below) */
-        @media (max-width: 480px) {
-            header {
-                padding: 10px 2%;
-            }
-            .logo {
-                font-size: 1.3rem;
-                flex: 1;
-            }
-            .search-box {
-                font-size: 0.9rem;
-                padding: 8px 12px;
-            }
-            .hero {
-                height: 60vh;
-                padding: 0 2%;
-            }
-            .hero-title { 
-                font-size: 1.5rem;
-                margin-bottom: 8px;
-            }
-            .hero-desc { 
-                font-size: 0.9rem;
-                margin-bottom: 15px;
-            }
-            .hero-card {
-                flex: 0 0 250px;
-                max-width: 280px;
-            }
-            .section-title {
-                padding: 15px 2% 8px;
-                font-size: 1.2rem;
-            }
-            .year-section {
-                margin: 12px 2%;
-                padding: 10px;
-                border-width: 1px;
-            }
-            .year-title {
-                font-size: 1rem;
-            }
-            .year-header {
-                flex-direction: column;
-                gap: 8px;
-                align-items: flex-start;
-            }
-            .expand-toggle {
-                width: 100%;
-                padding: 10px 12px;
-            }
-            .movie-card {
-                flex: 0 0 150px;
-            }
-            .movie-card img,
-            .movie-card video {
-                height: 110px;
-            }
-            .movie-row {
-                max-height: 140px;
-                gap: 6px;
-                padding: 6px 0;
-            }
-            .video-container {
-                width: 98%;
-            }
-            .player-controls {
-                bottom: 50px;
-                left: 5px;
-                right: 5px;
-                gap: 4px;
-                font-size: 0.75rem;
-            }
-            .player-controls button {
-                padding: 8px 10px;
-                font-size: 0.75rem;
-            }
-            .time-display {
-                min-width: 70px;
-                font-size: 0.75rem;
-            }
-            .speed-control select, .volume-control input {
-                font-size: 0.75rem;
-                padding: 4px 6px;
-            }
-            .volume-control input {
-                width: 50px;
-            }
-            .btn {
-                padding: 8px 12px;
-                font-size: 0.85rem;
-            }
-            #player-text {
-                bottom: 60px !important;
-            }
-            #playing-title {
-                font-size: 0.95rem !important;
-                margin: 0;
-            }
-            #keyboard-hint {
-                display: none;
-            }
-            #folderPickerOverlay {
-                height: 100vh;
-            }
-            #folderPickerBtn {
-                font-size: 3rem;
-                padding: 20px;
-            }
-        }
-
-        @media (min-width: 1024px) {
-            #mobileMenuBtn {
-                display: none !important;
-            }
-            header > div:first-of-type {
-                display: flex !important;
-                order: 2;
-            }
-            .hero { justify-content: center; }
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('otls-theme');
+            if (savedTheme === 'light' || (!savedTheme && window.matchMedia('(prefers-color-scheme: light)').matches)) {
+                document.documentElement.classList.add('theme-light');
+            }
+        })();
+    </script>
 </head>
 <body>
 
     <header>
-        <a href="#" class="logo">OTLS</a>
+        <div class="logo-container">
+            <a href="#" class="logo"><span>O</span>TLS</a>
+            <span class="version">Version 0.0.1</span>
+        </div>
 
         <button id="mobileMenuBtn" style="display: none; margin-left: auto;">☰</button>
 
-        <div style="display: flex; align-items: center; gap: 8px;">
-            <button id="scanFolderBtn" class="btn btn-secondary" type="button">Scan Movies Folder</button>
-            <button id="resetFolderBtn" class="btn btn-secondary" type="button">Reset Folder</button>
-            <button id="updateListBtn" class="btn btn-secondary" type="button">Update List</button>
-            <button id="saveBtn" class="btn btn-primary" type="button">Save</button>
-        </div>
+        <div class="nav-actions">
+            <div class="nav-buttons-container" style="display: flex; align-items: center; gap: 8px;">
+                <button id="scanFolderBtn" class="btn btn-secondary" type="button">Scan Movies Folder</button>
+                <button id="resetFolderBtn" class="btn btn-secondary" type="button">Reset Folder</button>
+                <button id="updateListBtn" class="btn btn-secondary" type="button">Update List</button>
+                <button id="saveBtn" class="btn btn-primary" type="button">Save</button>
+            </div>
 
-        <input type="text" class="search-box" id="searchInput" placeholder="Search movies...">
-        <div class="user-nav">
-            <a class="version">Version 0.0.1</a>
+            <div class="search-container">
+                <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input type="text" class="search-box" id="searchInput" placeholder="Search movies...">
+            </div>
+
+            <button id="themeToggleBtn" class="theme-toggle-btn" title="Toggle theme">
+                <!-- Sun icon (for dark theme, switches to light) -->
+                <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="4"></circle>
+                    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+                </svg>
+                <!-- Moon icon (for light theme, switches to dark) -->
+                <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+                </svg>
+            </button>
         </div>
     </header>
 
     <div id="folderPickerOverlay" class="show">
-        <button id="folderPickerBtn" title="Select movie folder">＋</button>
-        <div style="font-size: 1rem; color: #ddd;">Click plus to choose your movie folder</div>
-        <div style="font-size: 0.85rem; color: #999;">Also available from header button</div>
+        <div class="onboarding-card">
+            <div class="onboarding-icon">🎬</div>
+            <h2 class="onboarding-title">Welcome to OTLS</h2>
+            <p class="onboarding-desc">Your personal offline streaming platform. Select a directory containing your video files to scan and play your library instantly.</p>
+            <button id="folderPickerBtn" title="Select movie folder">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                    <line x1="12" y1="11" x2="12" y2="17"></line>
+                    <line x1="9" y1="14" x2="15" y2="14"></line>
+                </svg>
+                Choose Movies Folder
+            </button>
+        </div>
     </div>
 
-    <div id="continue-watch-section" style="padding-top: 100px; padding-bottom: 5px; display: none;"></div>
-    <div id="movies-list" style="padding-top: 10px; padding-bottom: 40px;"></div>
+    <div id="continue-watch-section" style="display: none;"></div>
+    <div id="movies-list"></div>
 
     <div class="modal" id="videoModal">
         <span class="close-modal" onclick="closePlayer()">&times;</span>
@@ -704,19 +98,19 @@
                 </div>
                 <button id="fullscreenBtn" class="playlist-nav" title="F">⛶ Fullscreen</button>
             </div>
-            <div id="player-text" style="text-align: center; position: absolute; bottom: 90px; left: 20px; right: 20px; color: white; text-shadow: 0 0 6px rgba(0,0,0,0.9);">
-                <h2 id="playing-title" style="margin: 0; font-size: 1.3rem;">Movie Title</h2>
-                <p id="keyboard-hint" style="margin: 5px 0 0; font-size: 0.8rem; color: #aaa;">Press SPACE to play/pause, ESC to close, F for fullscreen, Arrow keys to seek</p>
+            <div id="player-text">
+                <h2 id="playing-title">Movie Title</h2>
+                <p id="keyboard-hint">Press SPACE to play/pause, ESC to close, F for fullscreen, Arrow keys to seek</p>
             </div>
         </div>
     </div>
 
     <div class="modal" id="editModal">
-        <div class="modal-content" style="background: #111; padding: 20px; border-radius: 8px; width: min(95%, 760px); max-height: 80vh; overflow: auto; position: relative;">
-            <h2 style="margin: 0 0 10px;">Edit Movie List</h2>
-            <p style="margin: 0 0 10px; color: #727272;">One file name per line. Format: Title - YYYY.ext</p>
-            <textarea id="editListTextarea" style="width:100%; height: 300px; background: #222; color: #eee; border: 1px solid #333; padding: 10px; border-radius: 4px;"></textarea>
-            <div style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
+        <div class="modal-content">
+            <h2>Edit Movie List</h2>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">One file name per line. Format: Title - YYYY.ext</p>
+            <textarea id="editListTextarea"></textarea>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                 <button id="saveManualBtn" class="btn btn-primary" type="button">Save Manual List</button>
                 <button id="closeEditModalBtn" class="btn btn-secondary" type="button">Close</button>
             </div>
@@ -828,8 +222,6 @@
 
             const row = document.createElement('div');
             row.className = 'movie-row';
-            row.style.maxHeight = '220px';
-            row.style.marginBottom = '20px';
 
             continueWatchData.slice(0, 10).forEach(item => {
                 const card = document.createElement('div');
@@ -837,12 +229,6 @@
                 card.onclick = () => openPlayer(item);
 
                 const imgEl = document.createElement('img');
-                imgEl.style.width = '100%';
-                imgEl.style.height = '170px';
-                imgEl.style.objectFit = 'cover';
-                imgEl.style.borderRadius = '4px';
-                imgEl.style.display = 'block';
-                imgEl.style.background = '#111';
                 imgEl.alt = item.title;
                 imgEl.src = item.thumbnail || getFallbackThumbnailPlaceholder(item.title);
 
@@ -858,10 +244,18 @@
                 const infoDiv = document.createElement('div');
                 infoDiv.className = 'movie-info';
                 const progressPercent = item.duration ? Math.round((item.lastPosition / item.duration) * 100) : 0;
-                infoDiv.innerHTML = `<h4>${item.title}</h4><p style="font-size: 0.8rem; margin-top: 5px;">Resume at ${formatTime(item.lastPosition)} (${progressPercent}%)</p>`;
+                infoDiv.innerHTML = `<h4>${item.title}</h4><p>Resume at ${formatTime(item.lastPosition)} (${progressPercent}%)</p>`;
+
+                const progressContainer = document.createElement('div');
+                progressContainer.className = 'progress-container';
+                const progressBar = document.createElement('div');
+                progressBar.className = 'progress-bar';
+                progressBar.style.width = `${progressPercent}%`;
+                progressContainer.appendChild(progressBar);
 
                 card.appendChild(imgEl);
                 card.appendChild(infoDiv);
+                card.appendChild(progressContainer);
                 row.appendChild(card);
             });
 
@@ -1035,19 +429,12 @@
             card.onclick = () => openPlayer(movie);
 
             const imgEl = document.createElement('img');
-            imgEl.style.width = '100%';
-            imgEl.style.height = '170px';
-            imgEl.style.objectFit = 'cover';
-            imgEl.style.borderRadius = '4px';
-            imgEl.style.display = 'block';
-            imgEl.style.background = '#111';
             imgEl.alt = movie.title;
             imgEl.src = getFallbackThumbnailPlaceholder(movie.title);
 
             const setImage = (url) => {
                 if (url) {
                     imgEl.src = url;
-                    imgEl.style.borderRadius = '4px';
                 }
             };
 
@@ -1246,8 +633,9 @@
                             const secondaryHeader = document.createElement('div');
                             secondaryHeader.className = 'year-header';
                             secondaryHeader.style.marginLeft = '20px';
-                            secondaryHeader.style.backgroundColor = 'rgba(245, 160, 48, 0.08)';
-                            secondaryHeader.style.borderRadius = '4px';
+                            secondaryHeader.style.backgroundColor = 'var(--bg-surface-hover)';
+                            secondaryHeader.style.border = '1px solid var(--border)';
+                            secondaryHeader.style.borderRadius = 'var(--radius-sm)';
                             secondaryHeader.style.marginTop = '10px';
                             secondaryHeader.style.marginBottom = '5px';
                             secondaryHeader.style.padding = '10px';
@@ -1576,6 +964,15 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            // Theme Toggle Event Listener
+            const themeToggleBtn = document.getElementById('themeToggleBtn');
+            if (themeToggleBtn) {
+                themeToggleBtn.addEventListener('click', () => {
+                    const isLight = document.documentElement.classList.toggle('theme-light');
+                    localStorage.setItem('otls-theme', isLight ? 'light' : 'dark');
+                });
+            }
+
             continueWatchData = loadContinueWatchFromLocalStorage();
             renderContinueWatch();
             loadMoviesFromJson();
@@ -1603,7 +1000,7 @@
 
             // Mobile Menu Toggle
             const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-            const headerButtonsDiv = document.querySelector('header > div:first-of-type');
+            const headerButtonsDiv = document.querySelector('.nav-buttons-container');
             
             if (mobileMenuBtn && headerButtonsDiv) {
                 mobileMenuBtn.addEventListener('click', (e) => {
