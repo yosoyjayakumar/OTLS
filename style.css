@@ -169,6 +169,12 @@ header.header-scrolled {
     gap: 12px;
 }
 
+.nav-buttons-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .btn {
     padding: 8px 16px;
     border: 1px solid var(--border);
@@ -210,6 +216,18 @@ header.header-scrolled {
     background-color: var(--primary-hover);
     border-color: transparent;
     box-shadow: 0 4px 15px rgba(var(--primary-rgb), 0.35);
+}
+
+#resetFolderBtn {
+    background-color: #dc2626;
+    color: #ffffff;
+    border-color: transparent;
+}
+
+#resetFolderBtn:hover {
+    background-color: #b91c1c;
+    border-color: transparent;
+    box-shadow: 0 4px 15px rgba(220, 38, 38, 0.35);
 }
 
 .btn-lg {
@@ -269,6 +287,7 @@ header.header-scrolled {
     place-items: center;
     font-size: 1rem;
     transition: all 0.25s ease;
+    flex-shrink: 0;
 }
 
 .theme-toggle-btn:hover {
@@ -280,6 +299,16 @@ header.header-scrolled {
 .theme-toggle-btn svg {
     width: 18px;
     height: 18px;
+}
+
+#mobileMenuBtn {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    font-size: 1.6rem;
+    cursor: pointer;
+    padding: 6px;
 }
 
 /* Folder Picker (Onboarding Screen) */
@@ -1573,52 +1602,62 @@ header.header-scrolled {
         padding: 12px 4%;
         flex-wrap: wrap;
         gap: 12px;
+        align-items: flex-start;
     }
     
     .logo-container {
-        flex: 1;
+        flex: 1 1 100%;
+        align-items: center;
     }
     
     .search-container {
-        order: 3;
         max-width: 100%;
+        order: 1;
+        width: 100%;
     }
     
     .nav-actions {
         order: 2;
-    }
-    
-    #mobileMenuBtn {
-        display: block !important;
-        background: none;
-        border: none;
-        color: var(--text-primary);
-        font-size: 1.5rem;
-        cursor: pointer;
-        padding: 4px;
+        width: 100%;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
     }
     
     .nav-buttons-container {
-        display: none;
-        position: absolute;
-        top: 100%;
-        left: 0;
+        display: none !important;
+        position: static;
         width: 100%;
         background: var(--bg-surface);
-        border-bottom: 1px solid var(--border);
-        padding: 16px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 14px;
         flex-direction: column;
         gap: 10px;
         box-shadow: var(--shadow-md);
+        order: 2;
     }
     
     .nav-buttons-container.mobile-menu-open {
-        display: flex;
+        display: flex !important;
     }
     
     .nav-buttons-container button {
         width: 100%;
         justify-content: center;
+    }
+    
+    #mobileMenuBtn {
+        display: block !important;
+        align-self: flex-start;
+        z-index: 110;
+    }
+    
+    .theme-toggle-btn {
+        order: 3;
+        align-self: flex-end;
     }
     
     #continue-watch-section {
