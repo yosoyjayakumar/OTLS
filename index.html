@@ -7,8 +7,14 @@
     <link rel="stylesheet" href="style.css">
     <script>
         (function() {
-            const savedTheme = localStorage.getItem('otls-theme');
-            if (savedTheme === 'light' || (!savedTheme && window.matchMedia('(prefers-color-scheme: light)').matches)) {
+            const savedTheme = localStorage.getItem('otls-theme') || 'system';
+            let isLight = false;
+            if (savedTheme === 'light') {
+                isLight = true;
+            } else if (savedTheme === 'system') {
+                isLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+            }
+            if (isLight) {
                 document.documentElement.classList.add('theme-light');
             }
         })();
@@ -17,56 +23,88 @@
 <body>
 
     <header id="mainHeader">
-        <div class="logo-container">
-            <a href="#" class="logo">
-                <svg class="logo-icon" viewBox="0 0 24 24" fill="currentColor">
-                    <polygon points="6,4 20,12 6,20" />
-                </svg>
-                <span>O</span>TLS
-            </a>
-            <span class="version">V0.0.1</span>
-        </div>
+        <div class="header-inner">
+            <div class="header-top-row">
+                <div class="logo-container">
+                    <a href="#" class="logo">
+                        <svg class="logo-icon" viewBox="0 0 24 24" fill="currentColor">
+                            <polygon points="6,4 20,12 6,20" />
+                        </svg>
+                        <span>O</span>TLS
+                    </a>
+                    <span class="version">V0.0.1</span>
+                </div>
 
-        <button id="mobileMenuBtn" aria-label="Toggle navigation menu" aria-expanded="false">☰</button>
+                <div class="header-controls-group">
+                    <div class="theme-dropdown" id="themeDropdown">
+                        <button id="themeToggleBtn" class="theme-toggle-btn" title="Select theme" aria-label="Select theme" aria-expanded="false">
+                            <svg class="icon-theme-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+                            </svg>
+                            <svg class="icon-theme-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+                                <circle cx="12" cy="12" r="4"></circle>
+                                <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+                            </svg>
+                            <svg class="icon-theme-system" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                                <line x1="8" y1="21" x2="16" y2="21"></line>
+                                <line x1="12" y1="17" x2="12" y2="21"></line>
+                            </svg>
+                        </button>
+                        <div class="theme-menu" id="themeMenu" role="menu">
+                            <button class="theme-option" data-theme="dark" role="menuitem">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+                                <span>Dark</span>
+                                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            </button>
+                            <button class="theme-option" data-theme="light" role="menuitem">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+                                <span>Light</span>
+                                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            </button>
+                            <button class="theme-option" data-theme="system" role="menuitem">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                                <span>System</span>
+                                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            </button>
+                        </div>
+                    </div>
 
-        <div class="nav-actions">
-            <div class="nav-buttons-container" aria-hidden="true">
-                <button id="scanFolderBtn" class="btn btn-secondary" type="button">
-                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-                    Scan Folder
-                </button>
-                <button id="updateListBtn" class="btn btn-secondary" type="button">
-                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z"/></svg>
-                    Edit List
-                </button>
-                <button id="saveBtn" class="btn btn-primary" type="button">
-                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                    Save
-                </button>
-                <button id="resetFolderBtn" class="btn btn-secondary" type="button">
-                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 7l-.867 12.142A2 2 0 0 1 16.138 21H7.862a2 2 0 0 1-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v3M4 7h16"/></svg>
-                    Reset
-                </button>
+                    <button id="mobileMenuBtn" aria-label="Toggle navigation menu" aria-expanded="false">☰</button>
+                </div>
             </div>
 
-            <div class="search-container">
-                <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                <input type="text" class="search-box" id="searchInput" placeholder="Search movies...">
-            </div>
+            <div class="nav-actions">
+                <div class="nav-buttons-container" aria-hidden="true">
+                    <button id="scanFolderBtn" class="btn btn-secondary" type="button">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                        Scan Folder
+                    </button>
+                    <button id="selectFilesBtn" class="btn btn-secondary" type="button" title="Select video files directly">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+                        Add Files
+                    </button>
+                    <button id="updateListBtn" class="btn btn-secondary" type="button">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z"/></svg>
+                        Edit List
+                    </button>
+                    <button id="saveBtn" class="btn btn-primary" type="button">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                        Save
+                    </button>
+                    <button id="resetFolderBtn" class="btn btn-danger" type="button">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 7l-.867 12.142A2 2 0 0 1 16.138 21H7.862a2 2 0 0 1-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v3M4 7h16"/></svg>
+                        Reset
+                    </button>
+                </div>
 
-            <button id="themeToggleBtn" class="theme-toggle-btn" title="Toggle theme">
-                <!-- Sun icon (for dark theme, switches to light) -->
-                <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="4"></circle>
-                    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
-                </svg>
-                <!-- Moon icon (for light theme, switches to dark) -->
-                <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
-                </svg>
-            </button>
+                <div class="search-container">
+                    <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <input type="text" class="search-box" id="searchInput" placeholder="Search movies...">
+                </div>
+            </div>
         </div>
     </header>
 
@@ -81,14 +119,22 @@
             </div>
             <h2 class="onboarding-title">Welcome to OTLS</h2>
             <p class="onboarding-desc">Your personal offline streaming platform. Select a directory containing your video files to scan and play your library instantly.</p>
-            <button id="folderPickerBtn" title="Select movie folder">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-                    <line x1="12" y1="11" x2="12" y2="17"></line>
-                    <line x1="9" y1="14" x2="15" y2="14"></line>
-                </svg>
-                Choose Movies Folder
-            </button>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; width: 100%;">
+                <button id="folderPickerBtn" title="Select movie folder">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                        <line x1="12" y1="11" x2="12" y2="17"></line>
+                        <line x1="9" y1="14" x2="15" y2="14"></line>
+                    </svg>
+                    Choose Movies Folder
+                </button>
+                <button id="onboardingFilesBtn" class="btn btn-secondary" style="padding: 12px 20px; font-weight: 600; border-radius: 12px; display: inline-flex; align-items: center; gap: 8px;" title="Select video files directly" type="button">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>
+                    </svg>
+                    Choose Video Files
+                </button>
+            </div>
         </div>
     </div>
 
@@ -144,6 +190,39 @@
             <div class="vp-skip-indicator right" id="skipRight">
                 <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/></svg>
                 <span>10s</span>
+            </div>
+
+            <!-- Manual Play Overlay (Autoplay Policy Fallback) -->
+            <div id="vpManualPlayOverlay" class="vp-manual-play-overlay" style="display: none;">
+                <div class="vp-manual-play-card" id="vpManualPlayCard">
+                    <button class="vp-manual-play-btn" id="vpManualPlayBtn" title="Play Video" type="button">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="40" height="40"><path d="M8 5v14l11-7z"/></svg>
+                    </button>
+                    <span style="color: #fff; font-weight: 600; font-size: 1rem;">Click to Start Playback</span>
+                </div>
+            </div>
+
+            <!-- Player Error Overlay -->
+            <div id="vpErrorOverlay" class="vp-error-overlay" style="display: none;">
+                <div class="vp-error-card">
+                    <div class="vp-error-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="28" height="28">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="12"/>
+                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                    </div>
+                    <h3 class="vp-error-title" id="vpErrorTitle">Unable to Play Video</h3>
+                    <p class="vp-error-message" id="vpErrorMessage">The file format or audio/video codec may not be supported by your browser.</p>
+                    <div class="vp-error-actions">
+                        <button class="btn btn-primary" id="vpErrorPickFileBtn" type="button">
+                            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+                            Select Video File
+                        </button>
+                        <button class="btn btn-secondary" id="vpErrorScanBtn" type="button">Scan Folder</button>
+                        <button class="btn btn-secondary" id="vpErrorCloseBtn" type="button">Dismiss</button>
+                    </div>
+                </div>
             </div>
 
             <!-- Bottom Controls -->
@@ -268,6 +347,11 @@
     
     <script src="config.js"></script>
     <script>
+        function escapeHTML(str) {
+            if (!str) return '';
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
         function parseMovieFile(fileName, src) {
             const noExt = fileName.replace(/\.[^/.]+$/, '');
             const parts = noExt.split(' - ');
@@ -304,6 +388,138 @@
         let currentMovie = null;
         let currentVideoObjectUrl = null;
         let currentFeaturedMovie = null;
+
+        // =============================================
+        //   INDEXEDDB & FILE SYSTEM ACCESS HELPERS
+        // =============================================
+        const DB_NAME = 'OTLS_Storage_DB';
+        const DB_STORE = 'handles';
+        let relinkTargetMovie = null;
+
+        function getDB() {
+            return new Promise((resolve, reject) => {
+                const req = indexedDB.open(DB_NAME, 1);
+                req.onupgradeneeded = () => req.result.createObjectStore(DB_STORE);
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        async function storeDirHandle(handle) {
+            try {
+                const db = await getDB();
+                const tx = db.transaction(DB_STORE, 'readwrite');
+                tx.objectStore(DB_STORE).put(handle, 'movieDirHandle');
+                await tx.complete;
+            } catch (e) {
+                console.warn('Could not store dirHandle in IndexedDB:', e);
+            }
+        }
+
+        async function getStoredDirHandle() {
+            try {
+                const db = await getDB();
+                return new Promise((resolve) => {
+                    const req = db.transaction(DB_STORE, 'readonly').objectStore(DB_STORE).get('movieDirHandle');
+                    req.onsuccess = () => resolve(req.result || null);
+                    req.onerror = () => resolve(null);
+                });
+            } catch (e) {
+                return null;
+            }
+        }
+
+        async function verifyPermission(fileHandle, readWrite = false) {
+            if (!fileHandle || !fileHandle.queryPermission) return true;
+            try {
+                const options = { mode: readWrite ? 'readwrite' : 'read' };
+                if ((await fileHandle.queryPermission(options)) === 'granted') {
+                    return true;
+                }
+                if ((await fileHandle.requestPermission(options)) === 'granted') {
+                    return true;
+                }
+            } catch (e) {
+                console.warn('verifyPermission error:', e);
+            }
+            return false;
+        }
+
+        async function findFileInDirHandle(dirHandle, targetFileName, primaryCategory, secondaryCategory) {
+            try {
+                if (primaryCategory) {
+                    try {
+                        const mainHandle = await dirHandle.getDirectoryHandle(primaryCategory);
+                        if (secondaryCategory) {
+                            try {
+                                const subHandle = await mainHandle.getDirectoryHandle(secondaryCategory);
+                                const fileHandle = await subHandle.getFileHandle(targetFileName);
+                                if (fileHandle) return fileHandle;
+                            } catch (e) {}
+                        }
+                        const fileHandle = await mainHandle.getFileHandle(targetFileName);
+                        if (fileHandle) return fileHandle;
+                    } catch (e) {}
+                }
+                
+                for await (const [name, handle] of dirHandle.entries()) {
+                    if (handle.kind === 'file' && name === targetFileName) {
+                        return handle;
+                    } else if (handle.kind === 'directory') {
+                        for await (const [subName, subHandle] of handle.entries()) {
+                            if (subHandle.kind === 'file' && subName === targetFileName) {
+                                return subHandle;
+                            } else if (subHandle.kind === 'directory') {
+                                for await (const [fName, fHandle] of subHandle.entries()) {
+                                    if (fHandle.kind === 'file' && fName === targetFileName) {
+                                        return fHandle;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn('findFileInDirHandle error:', e);
+            }
+            return null;
+        }
+
+        async function resolveFileForMovie(movie) {
+            if (!movie) return null;
+            if (movie.file && movie.file instanceof File) {
+                return movie.file;
+            }
+
+            if (movie.fileHandle && typeof movie.fileHandle.getFile === 'function') {
+                try {
+                    const ok = await verifyPermission(movie.fileHandle);
+                    if (ok) {
+                        return await movie.fileHandle.getFile();
+                    }
+                } catch (e) {
+                    console.warn('Permission verify failed on movie.fileHandle:', e);
+                }
+            }
+
+            const rootHandle = await getStoredDirHandle();
+            if (rootHandle) {
+                try {
+                    const ok = await verifyPermission(rootHandle);
+                    if (ok) {
+                        const foundFileHandle = await findFileInDirHandle(rootHandle, movie.fileName, movie.primaryCategory, movie.secondaryCategory);
+                        if (foundFileHandle) {
+                            movie.fileHandle = foundFileHandle;
+                            return await foundFileHandle.getFile();
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Error resolving file from stored directory handle:', e);
+                }
+            }
+
+            return null;
+        }
 
         function loadContinueWatchFromLocalStorage() {
             try {
@@ -367,7 +583,7 @@
             container.style.display = 'block';
             const heading = document.createElement('div');
             heading.className = 'section-title';
-            heading.textContent = 'Continue Watching';
+            heading.innerHTML = `Continue Watching <span class="section-count">${continueWatchData.length}</span>`;
             container.appendChild(heading);
 
             const row = document.createElement('div');
@@ -380,13 +596,22 @@
 
                 const imgEl = document.createElement('img');
                 imgEl.alt = item.title;
-                imgEl.src = item.thumbnail || getFallbackThumbnailPlaceholder(item.title);
+                const fallbackSrc = getFallbackThumbnailPlaceholder(item.title);
+                imgEl.src = item.thumbnail || fallbackSrc;
+                imgEl.onerror = () => { imgEl.src = fallbackSrc; };
 
                 if (!item.thumbnail) {
-                    fetchMovieThumbnail(item.title, item.year).then(url => {
+                    generateThumbnailForMovie(item).then(url => {
                         if (url) {
                             imgEl.src = url;
                             item.thumbnail = url;
+                        } else {
+                            fetchMovieThumbnail(item.title, item.year).then(url2 => {
+                                if (url2) {
+                                    imgEl.src = url2;
+                                    item.thumbnail = url2;
+                                }
+                            });
                         }
                     });
                 }
@@ -510,12 +735,59 @@
                 });
                 
                 saveMoviesToLocalStorage(moviesData);
+                await storeDirHandle(dirHandle);
                 renderMovies();
                 alert(`Scanned ${totalFiles} movie files in hierarchical structure.`);
             } catch (err) {
                 console.warn('Could not scan folder:', err);
                 alert('Failed to scan folder. Make sure your browser supports File System Access API.');
             }
+        }
+
+        function processSelectedFiles(files) {
+            if (!files || files.length === 0) return;
+            const movies = [];
+            let count = 0;
+            const validExts = ['.mkv', '.mp4', '.avi', '.webm', '.mov', '.m4v', '.ogv'];
+            
+            for (const file of files) {
+                const name = file.name;
+                const lower = name.toLowerCase();
+                if (validExts.some(ext => lower.endsWith(ext))) {
+                    const blobUrl = URL.createObjectURL(file);
+                    const relPath = file.webkitRelativePath || '';
+                    const parts = relPath.split('/').filter(p => p);
+                    let primaryCat = 'Video Files';
+                    let secondaryCat = null;
+                    if (parts.length >= 3) {
+                        primaryCat = parts[0];
+                        secondaryCat = parts[1];
+                    } else if (parts.length === 2) {
+                        primaryCat = parts[0];
+                    }
+                    movies.push({
+                        title: name.replace(/\.[^/.]+$/, ''),
+                        fileName: name,
+                        year: 0,
+                        primaryCategory: primaryCat,
+                        secondaryCategory: secondaryCat,
+                        src: blobUrl,
+                        file: file
+                    });
+                    count++;
+                }
+            }
+
+            if (movies.length === 0) {
+                alert('No valid video files (.mp4, .mkv, .avi, .webm, .mov) selected.');
+                return;
+            }
+
+            moviesData = movies.sort((a, b) => a.title.localeCompare(b.title));
+            saveMoviesToLocalStorage(moviesData);
+            renderMovies();
+            setFolderPickerOverlayVisibility();
+            alert(`Added ${count} video file(s) to your library.`);
         }
 
         async function loadMoviesFromJson() {
@@ -583,7 +855,12 @@
 
             const imgEl = document.createElement('img');
             imgEl.alt = movie.title;
-            imgEl.src = getFallbackThumbnailPlaceholder(movie.title);
+            const fallbackSrc = getFallbackThumbnailPlaceholder(movie.title);
+            imgEl.src = movie.thumbnail || fallbackSrc;
+
+            imgEl.onerror = () => {
+                imgEl.src = fallbackSrc;
+            };
 
             // Play overlay icon
             const playOverlay = document.createElement('div');
@@ -604,7 +881,7 @@
             const setImage = (url) => {
                 if (url) {
                     imgEl.src = url;
-                    // If this is the active featured movie, update billboard background
+                    movie.thumbnail = url;
                     if (currentFeaturedMovie && currentFeaturedMovie.fileName === movie.fileName) {
                         const billboardBg = document.getElementById('billboardBg');
                         if (billboardBg) billboardBg.style.backgroundImage = `linear-gradient(to top, var(--bg-base) 0%, rgba(11, 15, 25, 0.4) 60%, rgba(11, 15, 25, 0.8) 100%), url(${url})`;
@@ -612,28 +889,21 @@
                 }
             };
 
-            // Local movie file preview first (faster for scanned folder data)
-            if (movie.fileHandle) {
-                generateThumbnailFromVideoHandle(movie.fileHandle).then(url => {
-                    if (url) {
-                        setImage(url);
-                        movie.thumbnail = url;
-                        return;
-                    }
-                    fetchMovieThumbnail(movie.title, movie.year).then(url2 => setImage(url2));
-                });
-            } else {
-                fetchMovieThumbnail(movie.title, movie.year).then(url => {
-                    if (url) {
-                        setImage(url);
-                        movie.thumbnail = url;
+            if (!movie.thumbnail) {
+                generateThumbnailForMovie(movie).then(localUrl => {
+                    if (localUrl) {
+                        setImage(localUrl);
+                    } else {
+                        fetchMovieThumbnail(movie.title, movie.year).then(apiUrl => {
+                            if (apiUrl) setImage(apiUrl);
+                        });
                     }
                 });
             }
 
             const infoDiv = document.createElement('div');
             infoDiv.className = 'movie-info';
-            infoDiv.innerHTML = `<h4>${movie.title}</h4><p>${movie.year ? movie.year : 'Offline Stream'}</p>`;
+            infoDiv.innerHTML = `<h4>${escapeHTML(movie.title)}</h4><p>${movie.year ? movie.year : 'Offline Stream'}</p>`;
 
             card.appendChild(thumbWrapper);
             card.appendChild(infoDiv);
@@ -642,26 +912,28 @@
 
         async function fetchMovieThumbnail(title, year) {
             try {
-                // Try OMDb API (free tier available)
+                if (typeof API_CONFIG === 'undefined' || !API_CONFIG.OMDB || !API_CONFIG.OMDB.apiKey) return null;
                 const searchQuery = year ? `${title} ${year}` : title;
                 const response = await fetch(`${API_CONFIG.OMDB.endpoint}?t=${encodeURIComponent(title)}&y=${year || ''}&type=movie&apikey=${API_CONFIG.OMDB.apiKey}`);
+                if (!response.ok) return null;
                 const data = await response.json();
                 
                 if (data.Poster && data.Poster !== 'N/A') {
                     return data.Poster;
                 }
                 
-                // Fallback: Try TMDB API
-                const tmdbResponse = await fetch(`${API_CONFIG.TMDB.endpoint}search/movie?query=${encodeURIComponent(title)}&year=${year || ''}&api_key=${API_CONFIG.TMDB.apiKey}`);
-                const tmdbData = await tmdbResponse.json();
-                
-                if (tmdbData.results && tmdbData.results.length > 0) {
-                    const poster = tmdbData.results[0].poster_path;
-                    if (poster) {
-                        return `https://image.tmdb.org/t/p/w500${poster}`;
+                if (API_CONFIG.TMDB && API_CONFIG.TMDB.apiKey) {
+                    const tmdbResponse = await fetch(`${API_CONFIG.TMDB.endpoint}search/movie?query=${encodeURIComponent(title)}&year=${year || ''}&api_key=${API_CONFIG.TMDB.apiKey}`);
+                    if (tmdbResponse.ok) {
+                        const tmdbData = await tmdbResponse.json();
+                        if (tmdbData.results && tmdbData.results.length > 0) {
+                            const poster = tmdbData.results[0].poster_path;
+                            if (poster) {
+                                return `https://image.tmdb.org/t/p/w500${poster}`;
+                            }
+                        }
                     }
                 }
-                
                 return null;
             } catch (err) {
                 console.warn(`Could not fetch thumbnail for ${title}:`, err);
@@ -670,14 +942,37 @@
         }
 
         function getFallbackThumbnailPlaceholder(title) {
-            const label = encodeURIComponent(title || 'No Title');
-            return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='170'%3E%3Crect fill='%23222' width='250' height='170'/%3E%3Ctext x='50%25' y='45%25' fill='%23999' font-size='12' text-anchor='middle'%3E${label}%3C/text%3E%3C/svg%3E`;
+            const cleanTitle = (title || 'OTLS Media').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            const shortLabel = cleanTitle.length > 22 ? cleanTitle.substring(0, 20) + '...' : cleanTitle;
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e1b4b"/>
+      <stop offset="50%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+    <linearGradient id="p" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="180" fill="url(#g)"/>
+  <circle cx="160" cy="72" r="28" fill="url(#p)" opacity="0.85"/>
+  <polygon points="152,58 174,72 152,86" fill="#ffffff"/>
+  <text x="160" y="130" fill="#f8fafc" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" text-anchor="middle">${shortLabel}</text>
+  <text x="160" y="148" fill="#64748b" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="500" text-anchor="middle">OTLS MEDIA</text>
+</svg>`;
+            return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
         }
 
-        async function generateThumbnailFromVideoHandle(fileHandle) {
-            if (!fileHandle || !fileHandle.getFile) return null;
+        async function generateThumbnailForMovie(movie) {
+            if (!movie) return null;
+            if (movie.thumbnail) return movie.thumbnail;
+
             try {
-                const file = await fileHandle.getFile();
+                const file = await resolveFileForMovie(movie);
+                if (!file) return null;
+
                 const src = URL.createObjectURL(file);
                 const video = document.createElement('video');
                 video.preload = 'metadata';
@@ -687,42 +982,44 @@
 
                 await new Promise((resolve, reject) => {
                     let loaded = false;
-                    video.addEventListener('loadeddata', () => {
+                    const onData = () => {
                         loaded = true;
                         resolve();
-                    }, { once: true });
-                    video.addEventListener('error', () => reject(new Error('Video load error')),{ once: true });
+                    };
+                    video.addEventListener('loadeddata', onData, { once: true });
+                    video.addEventListener('loadedmetadata', onData, { once: true });
+                    video.addEventListener('error', () => reject(new Error('Video load error')), { once: true });
                     setTimeout(() => {
                         if (!loaded) resolve();
-                    }, 5000);
+                    }, 4000);
                 });
 
-                const seekTime = Math.min(1, (video.duration || 0) * 0.15);
-                if (!Number.isFinite(seekTime) || seekTime < 0) {
-                    URL.revokeObjectURL(src);
-                    return null;
+                const seekTime = Math.min(3, (video.duration || 0) * 0.1);
+                if (Number.isFinite(seekTime) && seekTime > 0) {
+                    await new Promise((resolve) => {
+                        video.addEventListener('seeked', () => resolve(), { once: true });
+                        video.currentTime = seekTime;
+                        setTimeout(resolve, 2000);
+                    });
                 }
 
-                await new Promise((resolve) => {
-                    const onSeeked = () => resolve();
-                    video.addEventListener('seeked', onSeeked, { once: true });
-                    video.currentTime = seekTime;
-                    setTimeout(resolve, 3000);
-                });
-
                 const canvas = document.createElement('canvas');
-                canvas.width = 250;
-                canvas.height = 170;
+                canvas.width = 320;
+                canvas.height = 180;
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                const resultUrl = canvas.toDataURL('image/jpeg', 0.8);
-
+                
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
                 URL.revokeObjectURL(src);
-                return resultUrl;
+
+                if (dataUrl && dataUrl.length > 500) {
+                    movie.thumbnail = dataUrl;
+                    return dataUrl;
+                }
             } catch (err) {
-                console.warn('Could not generate thumbnail from video file handle:', err);
-                return null;
+                console.warn(`Could not generate video frame thumbnail for ${movie.title}:`, err);
             }
+            return null;
         }
 
         function renderHeroBillboard(movie) {
@@ -739,16 +1036,18 @@
             billboard.style.display = 'block';
             billboard.innerHTML = '';
 
-            // Billboard container with dynamic background image overlay
             const bgEl = document.createElement('div');
             bgEl.className = 'billboard-bg';
             bgEl.id = 'billboardBg';
 
-            // Add background thumbnail if available (or wait for resolution in createCard)
-            if (movie.thumbnail) {
-                bgEl.style.backgroundImage = `linear-gradient(to top, var(--bg-base) 0%, rgba(11, 15, 25, 0.4) 60%, rgba(11, 15, 25, 0.8) 100%), url(${movie.thumbnail})`;
-            } else {
-                bgEl.style.backgroundImage = `linear-gradient(to top, var(--bg-base) 0%, rgba(11, 15, 25, 0.4) 60%, rgba(11, 15, 25, 0.8) 100%)`;
+            const bgUrl = movie.thumbnail || getFallbackThumbnailPlaceholder(movie.title);
+            bgEl.style.backgroundImage = `linear-gradient(to top, var(--bg-base) 0%, rgba(11, 15, 25, 0.4) 60%, rgba(11, 15, 25, 0.8) 100%), url(${bgUrl})`;
+            if (!movie.thumbnail) {
+                generateThumbnailForMovie(movie).then(url => {
+                    if (url) {
+                        bgEl.style.backgroundImage = `linear-gradient(to top, var(--bg-base) 0%, rgba(11, 15, 25, 0.4) 60%, rgba(11, 15, 25, 0.8) 100%), url(${url})`;
+                    }
+                });
             }
 
             const contentEl = document.createElement('div');
@@ -824,7 +1123,7 @@
             // "All" filter pill
             const allPill = document.createElement('button');
             allPill.className = `genre-pill ${activeGenreFilter === 'all' ? 'active' : ''}`;
-            allPill.textContent = 'All Media';
+            allPill.textContent = `All Media (${moviesData.length})`;
             allPill.onclick = () => {
                 activeGenreFilter = 'all';
                 renderMovies();
@@ -832,9 +1131,10 @@
             wrapper.appendChild(allPill);
 
             categories.forEach(cat => {
+                const count = moviesData.filter(m => m.primaryCategory === cat).length;
                 const pill = document.createElement('button');
                 pill.className = `genre-pill ${activeGenreFilter === cat ? 'active' : ''}`;
-                pill.textContent = cat;
+                pill.textContent = `${cat} (${count})`;
                 pill.onclick = () => {
                     activeGenreFilter = cat;
                     renderMovies();
@@ -935,7 +1235,7 @@
 
                     const primaryTitle = document.createElement('h2');
                     primaryTitle.className = 'year-title';
-                    primaryTitle.textContent = primaryCat;
+                    primaryTitle.innerHTML = `${escapeHTML(primaryCat)} <span class="section-count">${primaryMovies.length}</span>`;
 
                     const primaryToggleBtn = document.createElement('button');
                     primaryToggleBtn.className = 'expand-toggle';
@@ -987,7 +1287,7 @@
                             const secondaryTitle = document.createElement('h3');
                             secondaryTitle.className = 'year-title';
                             secondaryTitle.style.fontSize = '1.2rem';
-                            secondaryTitle.textContent = secondaryCat;
+                            secondaryTitle.innerHTML = `${escapeHTML(secondaryCat)} <span class="section-count">${secondaryMovies.length}</span>`;
 
                             const secondaryToggleBtn = document.createElement('button');
                             secondaryToggleBtn.className = 'expand-toggle';
@@ -1052,7 +1352,8 @@
 
                     const titleEl = document.createElement('h2');
                     titleEl.className = 'year-title';
-                    titleEl.textContent = year > 0 ? year : 'Unknown Year';
+                    const yearLabel = year > 0 ? year : 'Unknown Year';
+                    titleEl.innerHTML = `${yearLabel} <span class="section-count">${yearMovies.length}</span>`;
 
                     const toggleBtn = document.createElement('button');
                     toggleBtn.className = 'expand-toggle';
@@ -1088,6 +1389,31 @@
             }
         }
 
+        function showVideoError(title, message, movie) {
+            const overlay = document.getElementById('vpErrorOverlay');
+            const titleEl = document.getElementById('vpErrorTitle');
+            const msgEl = document.getElementById('vpErrorMessage');
+            if (titleEl) titleEl.textContent = title;
+            if (msgEl) msgEl.textContent = message;
+            if (overlay) overlay.style.display = 'flex';
+            relinkTargetMovie = movie;
+        }
+
+        function hideErrorOverlay() {
+            const overlay = document.getElementById('vpErrorOverlay');
+            if (overlay) overlay.style.display = 'none';
+        }
+
+        function showManualPlayOverlay() {
+            const overlay = document.getElementById('vpManualPlayOverlay');
+            if (overlay) overlay.style.display = 'flex';
+        }
+
+        function hideManualPlayOverlay() {
+            const overlay = document.getElementById('vpManualPlayOverlay');
+            if (overlay) overlay.style.display = 'none';
+        }
+
         async function openPlayer(movie) {
             if (!movie || !movie.title) return;
             const modal = document.getElementById('videoModal');
@@ -1098,6 +1424,9 @@
             currentMovie = movie;
             titleEl.textContent = movie.title;
             if (mpTitleEl) mpTitleEl.textContent = movie.title;
+
+            hideErrorOverlay();
+            hideManualPlayOverlay();
 
             // Set mini player thumbnail
             const mpThumb = document.getElementById('mpThumbnail');
@@ -1110,23 +1439,32 @@
                 currentVideoObjectUrl = null;
             }
 
-            if (movie.fileHandle && typeof movie.fileHandle.getFile === 'function') {
-                try {
-                    const file = await movie.fileHandle.getFile();
-                    currentVideoObjectUrl = URL.createObjectURL(file);
-                    player.src = currentVideoObjectUrl;
-                } catch (err) {
-                    console.error('Failed to load file handle:', err);
-                    alert('Unable to play this file from folder access. Please try re-scanning.');
-                    return;
-                }
-            } else if (movie.src) {
+            const videoFile = await resolveFileForMovie(movie);
+            if (videoFile) {
+                currentVideoObjectUrl = URL.createObjectURL(videoFile);
+                player.src = currentVideoObjectUrl;
+            } else if (movie.src && !movie.src.startsWith('blob:') && !movie.src.includes('./Movies/')) {
                 player.src = movie.src;
             } else {
-                console.error('No video source available for', movie.title);
-                alert('No valid video source available.');
+                showVideoError('File Access Expired', 'The local file handle is no longer accessible. Click below to select the file on disk.', movie);
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
                 return;
             }
+
+            player.onerror = () => {
+                const err = player.error;
+                let msg = 'The video could not be played.';
+                if (err) {
+                    switch (err.code) {
+                        case 1: msg = 'Video loading was aborted.'; break;
+                        case 2: msg = 'Network error while loading video file.'; break;
+                        case 3: msg = 'Video playback aborted due to a decoding error or corrupted file.'; break;
+                        case 4: msg = 'Video format or codec is not supported by your browser (e.g. MKV container, AC3 audio, or HEVC video).'; break;
+                    }
+                }
+                showVideoError('Playback Error', msg, movie);
+            };
 
             player.load();
             player.muted = false;
@@ -1136,8 +1474,12 @@
                 }
                 updateSeekBar();
             }, { once: true });
-            player.play().catch((err) => {
+
+            player.play().then(() => {
+                hideManualPlayOverlay();
+            }).catch((err) => {
                 console.warn('Autoplay blocked or failed:', err);
+                showManualPlayOverlay();
             });
 
             modal.classList.add('active');
@@ -1607,12 +1949,76 @@
                 }, { passive: true });
             }
 
-            // Theme Toggle Event Listener
+            // Theme Dropdown Manager
+            const themeDropdown = document.getElementById('themeDropdown');
             const themeToggleBtn = document.getElementById('themeToggleBtn');
-            if (themeToggleBtn) {
-                themeToggleBtn.addEventListener('click', () => {
-                    const isLight = document.documentElement.classList.toggle('theme-light');
-                    localStorage.setItem('otls-theme', isLight ? 'light' : 'dark');
+            const themeMenu = document.getElementById('themeMenu');
+            const themeOptions = document.querySelectorAll('.theme-option');
+            const iconDark = themeToggleBtn?.querySelector('.icon-theme-dark');
+            const iconLight = themeToggleBtn?.querySelector('.icon-theme-light');
+            const iconSystem = themeToggleBtn?.querySelector('.icon-theme-system');
+
+            function applyThemePreference(theme) {
+                let isLight = false;
+                if (theme === 'light') {
+                    isLight = true;
+                } else if (theme === 'dark') {
+                    isLight = false;
+                } else {
+                    isLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+                }
+
+                if (isLight) {
+                    document.documentElement.classList.add('theme-light');
+                } else {
+                    document.documentElement.classList.remove('theme-light');
+                }
+
+                if (iconDark && iconLight && iconSystem) {
+                    iconDark.style.display = theme === 'dark' ? 'block' : 'none';
+                    iconLight.style.display = theme === 'light' ? 'block' : 'none';
+                    iconSystem.style.display = theme === 'system' ? 'block' : 'none';
+                }
+
+                themeOptions.forEach(opt => {
+                    const match = opt.dataset.theme === theme;
+                    opt.classList.toggle('active', match);
+                    opt.setAttribute('aria-selected', match ? 'true' : 'false');
+                });
+            }
+
+            const currentSavedTheme = localStorage.getItem('otls-theme') || 'system';
+            applyThemePreference(currentSavedTheme);
+
+            if (themeToggleBtn && themeMenu) {
+                themeToggleBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const isExpanded = themeMenu.classList.toggle('show');
+                    themeToggleBtn.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+                });
+
+                themeOptions.forEach(opt => {
+                    opt.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const selectedTheme = opt.dataset.theme;
+                        localStorage.setItem('otls-theme', selectedTheme);
+                        applyThemePreference(selectedTheme);
+                        themeMenu.classList.remove('show');
+                        themeToggleBtn.setAttribute('aria-expanded', 'false');
+                    });
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (themeDropdown && !themeDropdown.contains(e.target)) {
+                        themeMenu.classList.remove('show');
+                        themeToggleBtn.setAttribute('aria-expanded', 'false');
+                    }
+                });
+
+                window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
+                    if ((localStorage.getItem('otls-theme') || 'system') === 'system') {
+                        applyThemePreference('system');
+                    }
                 });
             }
 
@@ -1627,6 +2033,56 @@
 
             document.getElementById('scanFolderBtn').addEventListener('click', scanMoviesFolder);
             document.getElementById('folderPickerBtn').addEventListener('click', scanMoviesFolder);
+
+            const singleFileInput = document.getElementById('singleFileInput');
+            const relinkFileInput = document.getElementById('relinkFileInput');
+
+            function triggerSingleFileInput() {
+                if (singleFileInput) singleFileInput.click();
+            }
+
+            const selectFilesBtn = document.getElementById('selectFilesBtn');
+            if (selectFilesBtn) selectFilesBtn.addEventListener('click', triggerSingleFileInput);
+
+            const onboardingFilesBtn = document.getElementById('onboardingFilesBtn');
+            if (onboardingFilesBtn) onboardingFilesBtn.addEventListener('click', triggerSingleFileInput);
+
+            if (singleFileInput) {
+                singleFileInput.addEventListener('change', (e) => {
+                    processSelectedFiles(e.target.files);
+                    e.target.value = '';
+                });
+            }
+
+            if (relinkFileInput) {
+                relinkFileInput.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (file && relinkTargetMovie) {
+                        relinkTargetMovie.file = file;
+                        relinkTargetMovie.src = URL.createObjectURL(file);
+                        openPlayer(relinkTargetMovie);
+                    }
+                    e.target.value = '';
+                });
+            }
+
+            document.getElementById('vpErrorPickFileBtn').addEventListener('click', () => {
+                if (relinkFileInput) relinkFileInput.click();
+            });
+
+            document.getElementById('vpErrorScanBtn').addEventListener('click', () => {
+                hideErrorOverlay();
+                scanMoviesFolder();
+            });
+
+            document.getElementById('vpErrorCloseBtn').addEventListener('click', hideErrorOverlay);
+
+            document.getElementById('vpManualPlayOverlay').addEventListener('click', () => {
+                const player = document.getElementById('videoPlayer');
+                hideManualPlayOverlay();
+                if (player) player.play().catch(e => console.warn('Manual play failed:', e));
+            });
+
             document.getElementById('updateListBtn').addEventListener('click', openEditModal);
             document.getElementById('resetFolderBtn').addEventListener('click', resetFolderSelection);
             document.getElementById('saveBtn').addEventListener('click', () => {
@@ -1718,5 +2174,10 @@
             }
         });
     </script>
+
+    <!-- Hidden Fallback File Inputs -->
+    <input type="file" id="folderFileInput" webkitdirectory directory multiple style="display:none">
+    <input type="file" id="singleFileInput" accept="video/*,.mkv,.mp4,.avi,.webm,.mov,.m4v" multiple style="display:none">
+    <input type="file" id="relinkFileInput" accept="video/*,.mkv,.mp4,.avi,.webm,.mov,.m4v" style="display:none">
 </body>
 </html>
