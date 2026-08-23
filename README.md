@@ -1,4 +1,4 @@
-# 🎬 OTLS — Off-The-Local-Storage
+# 🎬 OTLS — Over The Local Storage
 
 <div align="center">
 
@@ -19,23 +19,30 @@
 
 ## 📖 About
 
-**OTLS** (Off-The-Local-Storage) is a browser-based streaming platform that lets you organize, browse, and play your locally stored video and audio files — no server, no account, no subscription. Think of it as your personal Netflix, built entirely with vanilla HTML, CSS, and JavaScript, running right in your browser.
+**OTLS** — Over The Local Storage is a browser-based streaming platform that lets you organize, browse, and play your locally stored video files — no server, no account, no subscription. Built with vanilla HTML, CSS, and JavaScript, it runs entirely in your browser using the File System Access API and IndexedDB.
 
-> Stream your local media collection with a polished, cinema-grade interface. Everything stays on your device.
+> Stream your local movie collection with a polished, cinema-grade interface. Everything stays on your device.
 
 ---
 
 ## ✨ Features
 
-- 🗂️ **Local File Browser** — Pick files or entire folders directly from your device using the File System API
-- 🎥 **Video Streaming** — Smooth playback for `.mp4`, `.mkv`, `.webm`, `.avi`, and more
-- 🎵 **Audio Support** — Full audio player for `.mp3`, `.flac`, `.ogg`, `.wav`
-- 🖼️ **Thumbnail Grid** — Auto-generated previews displayed in a beautiful card layout
-- 🔍 **Search & Filter** — Instantly find files by name, type, or recently watched
+- 🗂️ **Folder Scanning** — Pick a directory containing your video files using the File System Access API
+- 📁 **Hierarchical Library** — Organizes movies by primary and secondary folder categories
+- 🎥 **Video Streaming** — Smooth playback for `.mp4`, `.mkv`, `.webm`, `.avi`, `.mov`, `.m4v`
+- 🖼️ **Smart Thumbnails** — Auto-generated video frame previews with fallback to OMDB/TMDB posters
+- 🔍 **Search & Filter** — Instantly find files by name, or filter by category/genre pills
 - 📌 **Continue Watching** — Saves playback progress via `localStorage` — pick up where you left off
-- ❤️ **Favourites** — Bookmark your favourite titles for quick access
-- 🌙 **Dark / Light Mode** — Smooth theme toggle, preference saved locally
+- 🌙 **Dark / Light Mode** — Smooth theme toggle with Dark, Light, and System preferences saved locally
 - 📱 **Responsive Design** — Works on desktop, tablet, and mobile browsers
+- 🎬 **Hero Billboard** — Featured movie showcase with backdrop imagery
+- 🎮 **Custom Video Player** — Full custom controls with play/pause, seek, volume, speed, fullscreen, and PiP
+- 📦 **Mini Player** — Picture-in-picture style overlay for browsing while watching
+- ⏩ **Playback Speed** — 0.25× to 2× speed presets
+- ⌨️ **Keyboard Shortcuts** — Full keyboard control when player is active
+- 📱 **Touch Gestures** — Swipe to seek and swipe down to close on mobile
+- 💾 **Persistence** — IndexedDB stores directory handles; `localStorage` stores watch history and movie list
+- ✏️ **Manual List Editing** — Edit your movie list directly via a text modal
 - 🚫 **Zero Dependencies** — Pure HTML, CSS, and JS. No frameworks, no npm, no build step
 
 ---
@@ -56,34 +63,39 @@ open index.html   # or double-click the file
 
 ### Prerequisites
 
-- A modern browser (Chrome 86+, Firefox 82+, Edge 86+)
-- Local video/audio files you want to stream
+- A modern browser with File System Access API support:
+  - Chrome / Edge 86+ ✅ Full support
+  - Opera ✅ Supported
+  - Firefox ⚠️ Limited (no folder picker support)
+  - Safari ⚠️ Partial support
+- Local video files you want to stream
 
 ### Installation
 
 1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yosoyjayakumar/otls.git
-   ```
+    ```bash
+    git clone https://github.com/yosoyjayakumar/otls.git
+    ```
 
 2. **Navigate to the project folder**
-   ```bash
-   cd otls
-   ```
+    ```bash
+    cd otls
+    ```
 
 3. **Open in browser**
-   ```bash
-   # Simply open the file directly
-   open index.html
+    ```bash
+    # Simply open the file directly
+    open index.html
 
-   # OR serve locally with Python (optional, for broader File API support)
-   python -m http.server 8080
-   # Then visit: http://localhost:8080
-   ```
+    # OR serve locally with Python (optional)
+    python -m http.server 8080
+    # Then visit: http://localhost:8080
+    ```
 
 4. **Load your media**
-   - Click **"Add Media"** or drag & drop files/folders into the browser
-   - Your library appears instantly — no upload, no processing
+    - Click **"Choose Movies Folder"** on the welcome screen to scan a directory
+    - Or use **"Choose Video Files"** to select individual files
+    - Your library appears instantly — no upload, no processing
 
 ---
 
@@ -91,48 +103,59 @@ open index.html   # or double-click the file
 
 ```
 otls/
-├── index.html              # Entry point, Core styles & layout, Cards, modals, player UI, Dark/light theme variables
-├── js/
-│   ├── app.js              # App initialization & routing
-│   ├── library.js          # File loading & media library logic
-│   ├── player.js           # Video/audio player controls
-│   ├── storage.js          # localStorage read/write helpers
-│   └── ui.js               # DOM manipulation & rendering
-├── assets/
-│   ├── icons/              # SVG icons
-│   └── fonts/              # Local font files (if any)
+├── index.html              # Entry point, Core layout, Player UI, All app logic
+├── style.css               # All styles, themes, animations, responsive design
+├── config.js               # OMDB & TMDB API configuration
+├── movies.json             # Initial movie list (optional)
+├── .gitignore
 └── README.md
 ```
 
-```
-YourRootFolder/
-├── Action/              (Primary - Main Title)
-│   ├── 2020/           (Secondary - Sub Title)
-│   │   ├── Movie1.mp4
-│   │   ├── Movie2.mkv
-│   ├── 2021/           (Secondary - Sub Title)
-│   │   ├── Movie3.mp4
-├── Comedy/              (Primary - Main Title)
-│   ├── 2020/           (Secondary - Sub Title)
-│   │   ├── Movie4.mp4
-│   └── Classics/       (Secondary - Sub Title)
-│       ├── Movie5.avi
+**Expected folder structure for scanned media:**
 
 ```
+YourRootFolder/
+├── Action/              (Primary Category)
+│   ├── 2020/           (Secondary Category)
+│   │   ├── Movie1.mp4
+│   │   ├── Movie2.mkv
+│   ├── 2021/
+│   │   ├── Movie3.mp4
+├── Comedy/
+│   ├── 2020/
+│   │   ├── Movie4.mp4
+│   └── Classics/
+│       ├── Movie5.avi
+```
+
+---
 
 ## 🎮 Usage
 
 ### Adding Media
-Click the **＋ Add Media** button in the top bar, then select individual files or an entire folder. OTLS reads the file metadata and populates your library instantly.
+
+On first load, use the welcome screen to either:
+- **Choose Movies Folder** — scans a directory recursively for `.mp4`, `.mkv`, `.avi`, `.webm`, `.mov`, `.m4v` files and organizes them by folder hierarchy
+- **Choose Video Files** — select individual video files directly
+
+After the initial scan, use the top bar buttons:
+- **Scan Folder** — re-scan or select a new folder
+- **Add Files** — add individual files to the current library
+- **Edit List** — manually edit the movie list via a text modal
+- **Save** — persist the current library to `localStorage`
+- **Reset** — clear all data and return to the welcome screen
 
 ### Playback
-Click any card to open the player. Use the custom controls for play/pause, seek, volume, fullscreen, and playback speed.
+
+Click any card to open the full player. Use the custom controls or keyboard shortcuts for play/pause, seek, volume, fullscreen, playback speed, and picture-in-picture.
 
 ### Continue Watching
+
 Playback positions are saved automatically in `localStorage`. A progress bar appears on thumbnails, and a **Continue Watching** row populates on the homepage.
 
 ### Themes
-Toggle between dark and light mode using the 🌙 icon in the header. Your preference is remembered across sessions.
+
+Toggle between dark, light, and system themes using the 🌙 icon in the header. Your preference is remembered across sessions.
 
 ### Keyboard Shortcuts
 
@@ -145,18 +168,24 @@ Toggle between dark and light mode using the 🌙 icon in the header. Your prefe
 | `M` | Toggle mute |
 | `Esc` | Close player |
 
+### Mobile Gestures
+
+- Swipe left/right on the player to seek ±10 seconds
+- Swipe down to close the player
+
 ---
 
 ## 🛠️ Tech Stack
 
 | Technology | Purpose |
 |------------|---------|
-| **HTML5** | Semantic structure, `<video>` / `<audio>` elements |
-| **CSS3** | Custom properties, Grid, Flexbox, animations |
-| **Vanilla JavaScript (ES6+)** | App logic, File System API, localStorage |
-| **File & FileReader API** | Loading local files without a server |
-| **localStorage API** | Persisting watch history, favourites, preferences |
-| **Web Storage API** | Cross-session state management |
+| **HTML5** | Semantic structure, `<video>` element |
+| **CSS3** | Custom properties, Grid, Flexbox, animations, glassmorphism |
+| **Vanilla JavaScript (ES6+)** | App logic, File System Access API, IndexedDB, localStorage |
+| **File System Access API** | Loading local folders and files without a server |
+| **IndexedDB** | Persisting directory handles across sessions |
+| **localStorage** | Persisting watch history, movie list, theme preferences |
+| **OMDB / TMDB APIs** | Fetching movie posters when local thumbnails aren't available |
 
 ---
 
@@ -165,53 +194,26 @@ Toggle between dark and light mode using the 🌙 icon in the header. Your prefe
 | Browser | Support |
 |---------|---------|
 | Chrome / Edge 86+ | ✅ Full support |
-| Firefox 82+ | ✅ Full support |
+| Opera | ✅ Supported |
+| Firefox 82+ | ⚠️ Limited (no folder picker) |
 | Safari 15.2+ | ⚠️ Partial (no folder picker) |
 | Mobile Chrome | ✅ Supported |
 | Mobile Safari | ⚠️ Limited file access |
 
+> **Note:** Folder scanning requires the [File System Access API](https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API), which is currently only supported in Chromium-based browsers.
+
 ---
-
-## 🎬 New Player Features
-
-1. Custom Controls
-Play/Pause Button - Toggle video playback with visual icon change
-Time Display - Shows current time / total duration (formatted MM:SS)
-Speed Selector - 0.5x, 0.75x, 1x (default), 1.25x, 1.5x, 2x playback speeds
-Volume Slider - Adjustable 0-100% volume control
-Fullscreen Button - Enter fullscreen playback
-2. Keyboard Shortcuts (when player is active)
-|Key	Action|
-SPACE	Play/Pause
-ESC	Close player
-F	Toggle fullscreen
-← Arrow	Seek back 5 seconds
-→ Arrow	Seek forward 5 seconds
-↑ Arrow	Volume up 10%
-↓ Arrow	Volume down 10%
-3. Better UI/UX
-Custom styled buttons with hover effects (primary color highlight)
-Semi-transparent dark background for controls
-On-screen keyboard hint display
-Improved title display with larger font
-All controls footer-positioned and responsive
-Auto-update play button text (▶ Play / ⏸ Pause)
-4. Smart Player Logic
-Formats time display properly (e.g., "1:23" or "2:45")
-Tracks metadata loading for accurate duration display
-Bounds-check seek times (prevents seeking beyond video length)
-Bounds-check volume (keeps between 0-1)
-Prevents accidental page scrolling on arrow key use
 
 ## 🗺️ Roadmap
 
+- [ ] Audio file support (`.mp3`, `.flac`, `.ogg`, `.wav`)
+- [ ] Favourites / bookmarks
 - [ ] Subtitle / SRT file support
 - [ ] Playlist creation and queue management
 - [ ] Metadata editor (title, genre, poster art)
 - [ ] Grid / list view toggle
 - [ ] Sort by date added, duration, name
-- [ ] Mini player (picture-in-picture mode)
-- [ ] IndexedDB support for larger libraries
+- [ ] Drag & drop file/folder support
 - [ ] PWA support for installable offline app
 - [ ] Custom themes / accent colors
 
@@ -235,7 +237,8 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md) before submitting.
 
 - Large folders (1000+ files) may cause initial load delay due to browser FileReader limits
 - `.mkv` playback depends on browser codec support — Chrome handles most formats; Firefox may need codec packs
-- Safari restricts folder selection via `<input type="file" webkitdirectory>` in some versions
+- Firefox and Safari restrict folder selection via the File System Access API
+- OMDB/TMDB thumbnail fetching requires valid API keys configured in `config.js`
 
 ---
 
